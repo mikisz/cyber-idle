@@ -3,6 +3,8 @@ import HackingTab from './tabs/HackingTab';
 import CombatTab from './tabs/CombatTab';
 import InventoryTab from './tabs/InventoryTab';
 import UpgradesTab from './tabs/UpgradesTab';
+import SettingsMenu from './SettingsMenu';
+import { useGameStore } from '../game/state/store';
 
 type Tab = 'hacking' | 'combat' | 'inventory' | 'upgrades';
 
@@ -15,6 +17,7 @@ const tabs: { key: Tab; label: string }[] = [
 
 export default function AppShell() {
   const [current, setCurrent] = useState<Tab>('hacking');
+  const player = useGameStore((s) => s.player);
 
   const renderTab = () => {
     switch (current) {
@@ -32,8 +35,11 @@ export default function AppShell() {
   return (
     <div className="flex h-full flex-col bg-background">
       <header className="flex justify-between p-4 text-neon-cyan">
-        <span>Credits: 0</span>
-        <span>Data: 0</span>
+        <span>Credits: {player.credits}</span>
+        <div className="flex items-center gap-2">
+          <span>Data: {player.data}</span>
+          <SettingsMenu />
+        </div>
       </header>
       <main className="flex-1 overflow-y-auto" data-testid="tab-content">
         {renderTab()}

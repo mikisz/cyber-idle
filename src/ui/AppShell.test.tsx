@@ -1,0 +1,12 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import AppShell from './AppShell';
+
+describe('AppShell', () => {
+  it('shows HUD and switches tabs', () => {
+    render(<AppShell />);
+    expect(screen.getByText('Credits: 0')).toBeInTheDocument();
+    expect(screen.getByTestId('tab-content')).toHaveTextContent('Hacking');
+    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
+    expect(screen.getByTestId('tab-content')).toHaveTextContent('Combat');
+  });
+});

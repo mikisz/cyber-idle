@@ -1,5 +1,6 @@
 import { useGameStore } from './state/store';
 import enemiesData from '../data/enemies.json';
+import { getItem } from '../data/items';
 
 export type Enemy = (typeof enemiesData)[number];
 
@@ -52,13 +53,29 @@ function rollLoot(enemy: Enemy) {
   return { credits, items };
 }
 
+function rollCombatLoot(): string | null {
+  const roll = Math.random();
+  if (roll < 0.2) return 'medkit';
+  if (roll < 0.5) return 'shock_baton';
+  if (roll < 0.6) return 'kevlar_jacket';
+  return null;
+}
+
 function awardVictory(enemy: Enemy, log: string[]) {
   useGameStore.setState((state) => {
     const rewards = rollLoot(enemy);
-    const inv = { ...state.inventory };
+    const inv = [...state.inventory];
     for (const [itemId, qty] of Object.entries(rewards.items)) {
-      inv[itemId] = (inv[itemId] ?? 0) + qty;
+      for (let i = 0; i < qty; i++) {
+        inv.push(itemId);
+      }
       log.push(`Looted ${qty} ${itemId}`);
+    }
+    const drop = rollCombatLoot();
+    if (drop) {
+      inv.push(drop);
+      const item = getItem(drop);
+      log.push(`Found ${item?.name ?? drop}`);
     }
     let { level, xp } = state.skills.combat;
     xp += enemy.xp;

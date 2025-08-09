@@ -3,8 +3,8 @@ import { getLocation } from '../data/locations';
 import { getEnemyById } from '../data/enemies';
 import { getItem } from '../data/items';
 import { startCombat } from './combat';
-import { addItemToInventory } from './items';
 import { gainSkillXpState } from './skills';
+import { grantLoot, rollCredits, rollLoot, type LootEntry } from './loot';
 import { showToast } from '../ui/Toast';
 
 function trimLog(log: string[]) {
@@ -31,27 +31,6 @@ export function appendExplorationLog(line: string) {
       recentLog: trimLog([...s.exploration.recentLog, line]),
     },
   }));
-}
-
-function rollLootTable(locationId: string) {
-  const loc = getLocation(locationId);
-  const items: { itemId: string; quantity: number }[] = [];
-  let credits = 0;
-  if (!loc?.lootTable) return { items, credits };
-  for (const drop of loc.lootTable) {
-    if (Math.random() < drop.chance) {
-      const qty =
-        drop.min !== undefined && drop.max !== undefined
-          ? Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
-          : drop.min ?? 1;
-      if (drop.itemId === 'credits') {
-        credits += qty;
-      } else {
-        items.push({ itemId: drop.itemId, quantity: qty });
-      }
-    }
-  }
-  return { items, credits };
 }
 
 export function rollExplorationEvent(locationId: string) {
@@ -87,14 +66,15 @@ export function rollExplorationEvent(locationId: string) {
     return { type: 'enemy', enemyId } as const;
   }
   if (roll < chances.enemy + chances.loot) {
-    const loot = rollLootTable(locationId);
-    if (loot.items.length > 0) {
-      const drop = loot.items[0];
-      addItemToInventory(drop.itemId, drop.quantity);
-      const item = getItem(drop.itemId);
-      const summary = `Found ${
-        drop.quantity > 1 ? `${drop.quantity}x ` : ''
-      }${item?.name ?? drop.itemId}`;
+    const table: LootEntry[] = loc.lootTable ?? [];
+    const itemTable = table.filter((d) => d.itemId !== 'credits');
+    const creditEntry = table.find((d) => d.itemId === 'credits');
+    const drops = rollLoot(itemTable);
+    if (drops.length > 0) {
+      const first = drops[0];
+      const qty = drops.filter((id) => id === first).length;
+      const item = getItem(first);
+      const summary = `Found ${qty > 1 ? `${qty}x ` : ''}${item?.name ?? first}`;
       let playerLeveled = false;
       useGameStore.setState((s) => {
         const xpRes = gainSkillXpState(s, 'exploration', 5);
@@ -104,7 +84,7 @@ export function rollExplorationEvent(locationId: string) {
           exploration: {
             ...xpRes.state.exploration,
             view: 'loot',
-            lastEvent: { type: 'loot', summary, itemId: drop.itemId },
+            lastEvent: { type: 'loot', summary, itemId: first },
             recentLog: trimLog([...xpRes.state.exploration.recentLog, summary]),
           },
         };
@@ -113,10 +93,15 @@ export function rollExplorationEvent(locationId: string) {
       if (playerLeveled) {
         showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
       }
-      return { type: 'loot', itemId: drop.itemId, quantity: drop.quantity } as const;
+      grantLoot(drops);
+      return { type: 'loot', itemId: first, quantity: qty } as const;
     }
-    if (loot.credits > 0) {
-      const summary = `Found ${loot.credits} credits`;
+    if (creditEntry && Math.random() < creditEntry.chance) {
+      const amount = rollCredits({
+        min: creditEntry.min ?? 0,
+        max: creditEntry.max ?? creditEntry.min ?? 0,
+      });
+      const summary = `Found ${amount} credits`;
       let playerLeveled = false;
       useGameStore.setState((s) => {
         const xpRes = gainSkillXpState(s, 'exploration', 5);
@@ -125,12 +110,12 @@ export function rollExplorationEvent(locationId: string) {
           ...xpRes.state,
           resources: {
             ...xpRes.state.resources,
-            credits: xpRes.state.resources.credits + loot.credits,
+            credits: xpRes.state.resources.credits + amount,
           },
           exploration: {
             ...xpRes.state.exploration,
             view: 'loot',
-            lastEvent: { type: 'loot', summary, credits: loot.credits },
+            lastEvent: { type: 'loot', summary, credits: amount },
             recentLog: trimLog([...xpRes.state.exploration.recentLog, summary]),
           },
         };
@@ -139,7 +124,7 @@ export function rollExplorationEvent(locationId: string) {
       if (playerLeveled) {
         showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
       }
-      return { type: 'credits', amount: loot.credits } as const;
+      return { type: 'credits', amount } as const;
     }
   }
   let playerLeveled = false;

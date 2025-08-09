@@ -27,8 +27,8 @@ export function startCombat(enemyId: string) {
 
 function rollLoot(enemy: Enemy): string[] {
   const drops: string[] = [];
-  for (const entry of enemy.dropTable) {
-    if (Math.random() < entry.dropChance) {
+  for (const entry of enemy.possibleDrops) {
+    if (Math.random() < entry.chance) {
       drops.push(entry.itemId);
     }
   }
@@ -38,16 +38,17 @@ function rollLoot(enemy: Enemy): string[] {
 function awardVictory(enemy: Enemy, log: string[]) {
   useGameStore.setState((state) => {
     const drops = rollLoot(enemy);
-    const inventory = [...state.inventory];
+    const inventory = [...state.inventory, ...drops];
     const player = { ...state.player };
     for (const itemId of drops) {
       const item = getItem(itemId);
-      if (item?.type === 'currency') {
-        player.credits += item.value ?? 0;
-      } else {
-        inventory.push(itemId);
-      }
       log.push(`Looted ${item?.name ?? itemId}`);
+    }
+    if (enemy.creditsDrop) {
+      const { min, max } = enemy.creditsDrop;
+      const credits = Math.floor(Math.random() * (max - min + 1)) + min;
+      player.credits += credits;
+      log.push(`Looted ${credits} credits`);
     }
     let { level, xp } = state.skills.combat;
     xp += 10; // placeholder xp per victory

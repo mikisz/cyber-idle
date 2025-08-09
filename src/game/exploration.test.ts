@@ -6,7 +6,7 @@ import { getItem } from '../data/items';
 describe('exploration', () => {
   beforeEach(() => {
     useGameStore.setState(initialState);
-    setLocation('neon_street');
+    setLocation('dark_alley');
   });
 
   it('triggers enemy encounter', () => {
@@ -19,14 +19,16 @@ describe('exploration', () => {
   });
 
   it('can find loot-only items', () => {
-    const rand = vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0.995) // encounter roll -> loot
-      .mockReturnValue(0.6); // item selection -> second item (small_credchip)
+    setLocation('abandoned_warehouse');
+    const rand = vi
+      .spyOn(Math, 'random')
+      .mockReturnValueOnce(0.99) // enemy roll -> loot path
+      .mockReturnValueOnce(0); // loot chance success
     const result = explore();
     expect(result?.type).toBe('loot');
     const state = useGameStore.getState();
-    expect(state.player.credits).toBe(100); // small_credchip adds credits
-    const item = getItem('small_credchip');
+    expect(state.inventory).toContain('knife_rusty');
+    const item = getItem('knife_rusty');
     expect(item?.source).toBe('loot-only');
     rand.mockRestore();
   });

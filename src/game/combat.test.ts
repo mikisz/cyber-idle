@@ -27,8 +27,8 @@ describe('combat system', () => {
 
     const state = useGameStore.getState();
     expect(state.skills.combat.xp).toBe(10);
-    expect(state.player.credits).toBe(100);
-    expect(state.inventory).toContain('medkit');
+    expect(state.player.credits).toBe(5);
+    expect(state.inventory).toContain('knife_rusty');
 
     rand.mockRestore();
   });
@@ -53,7 +53,7 @@ describe('combat system', () => {
     const rand = vi.spyOn(Math, 'random').mockReturnValue(0.5);
     useGameStore.setState(() => ({
       ...initialState,
-      player: { ...initialState.player, hp: 2, credits: 100 },
+      player: { ...initialState.player, hp: 1, credits: 100 },
     }));
     startCombat('street_thug');
     attack();

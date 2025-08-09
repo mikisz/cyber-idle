@@ -23,7 +23,7 @@ export default function InventoryTab() {
     if (!item) return;
     if (item.type === 'consumable') {
       const used = consumeItem(id);
-      if (used && id === 'medkit') {
+      if (used && id === 'medkit_small') {
         showToast('+50 HP (Medkit)');
       }
     } else {

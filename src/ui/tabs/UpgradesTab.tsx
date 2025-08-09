@@ -1,20 +1,6 @@
-import upgradesData from '../../data/upgrades.json';
+import { upgrades, type Upgrade } from '../../data/upgrades';
 import { useGameStore } from '../../game/state/store';
 import { showToast } from '../Toast';
-
-interface Upgrade {
-  id: string;
-  name: string;
-  costCredits?: number;
-  costData?: number;
-  effects: {
-    hackingSpeed?: number;
-    atk?: number;
-    hpMax?: number;
-  };
-}
-
-const upgrades: Upgrade[] = upgradesData as Upgrade[];
 
 export default function UpgradesTab() {
   const player = useGameStore((s) => s.player);
@@ -23,7 +9,6 @@ export default function UpgradesTab() {
 
   const canAfford = (u: Upgrade) => {
     if (u.costCredits && player.credits < u.costCredits) return false;
-    if (u.costData && player.data < u.costData) return false;
     return true;
   };
 
@@ -33,7 +18,6 @@ export default function UpgradesTab() {
       if (!canAfford(u)) return state;
       const newPlayer = { ...state.player };
       if (u.costCredits) newPlayer.credits -= u.costCredits;
-      if (u.costData) newPlayer.data -= u.costData;
       if (u.effects.atk) newPlayer.atk += u.effects.atk;
       if (u.effects.hpMax) {
         newPlayer.hpMax += u.effects.hpMax;
@@ -70,7 +54,6 @@ export default function UpgradesTab() {
                 <div>{u.name}</div>
                 <div className="text-sm text-neon-cyan">
                   {u.costCredits ? `Credits: ${u.costCredits} ` : ''}
-                  {u.costData ? `Data: ${u.costData}` : ''}
                 </div>
               </div>
               <button

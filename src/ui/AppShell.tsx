@@ -4,7 +4,7 @@ import ExplorationTab from './tabs/ExplorationTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
 import UpgradesTab from './tabs/UpgradesTab';
-import CharacterTab from './tabs/CharacterTab';
+import StatsTab from './tabs/StatsTab';
 import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
 import { NeonToast } from './Toast';
@@ -14,11 +14,11 @@ export type Tab =
   | 'inventory'
   | 'store'
   | 'upgrades'
-  | 'character'
+  | 'stats'
   | 'exploration';
 
 const tabs: { key: Tab; label: string; icon: string }[] = [
-  { key: 'character', label: 'Character', icon: '👤' },
+  { key: 'stats', label: 'Stats', icon: '📊' },
   { key: 'hacking', label: 'Hacking', icon: '💻' },
   { key: 'exploration', label: 'Exploration', icon: '🧭' },
   { key: 'inventory', label: 'Inventory', icon: '🎒' },
@@ -30,11 +30,12 @@ export default function AppShell() {
   const [current, setCurrent] = useState<Tab>('hacking');
   const resources = useGameStore((s) => s.resources);
   const skills = useGameStore((s) => s.skills);
+  const playerLevel = useGameStore((s) => s.playerLevel);
 
   const renderTab = () => {
     switch (current) {
-      case 'character':
-        return <CharacterTab />;
+      case 'stats':
+        return <StatsTab />;
       case 'exploration':
         return <ExplorationTab />;
       case 'inventory':
@@ -55,8 +56,10 @@ export default function AppShell() {
         <span>Credits: {resources.credits}</span>
         <div className="flex items-center gap-2">
           <span>Data: {resources.data}</span>
+          <span className="text-xs">Lvl {playerLevel}</span>
           <span className="text-xs">Hacking L{skills.hacking.level}</span>
           <span className="text-xs">Combat L{skills.combat.level}</span>
+          <span className="text-xs">Exploration L{skills.exploration.level}</span>
           <SettingsMenu />
         </div>
       </header>

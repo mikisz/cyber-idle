@@ -5,6 +5,8 @@ import { getItem } from '../data/items';
 import { startCombat } from './combat';
 import { rollLoot } from '../data/lootTables';
 import { addItemToInventory } from './items';
+import { gainSkillXpState } from './skills';
+import { showToast } from '../ui/Toast';
 
 function trimLog(log: string[]) {
   return log.slice(-10);
@@ -44,18 +46,27 @@ export function exploreOnce() {
     const enemyId = loc.enemies[Math.floor(Math.random() * loc.enemies.length)];
     const enemy = getEnemyById(enemyId);
     startCombat(enemyId);
-    useGameStore.setState((s) => ({
-      ...s,
-      exploration: {
-        ...s.exploration,
-        view: 'encounter',
-        currentEnemyId: enemyId,
-        recentLog: trimLog([
-          ...s.exploration.recentLog,
-          `Encountered ${enemy?.name ?? enemyId}`,
-        ]),
-      },
-    }));
+    let playerLeveled = false;
+    useGameStore.setState((s) => {
+      const xpRes = gainSkillXpState(s, 'exploration', 5);
+      playerLeveled = xpRes.playerLeveled;
+      return {
+        ...xpRes.state,
+        exploration: {
+          ...xpRes.state.exploration,
+          view: 'encounter',
+          currentEnemyId: enemyId,
+          recentLog: trimLog([
+            ...xpRes.state.exploration.recentLog,
+            `Encountered ${enemy?.name ?? enemyId}`,
+          ]),
+        },
+      };
+    });
+    showToast('+5 Exploration XP');
+    if (playerLeveled) {
+      showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+    }
     return { type: 'enemy', enemyId } as const;
   }
   // 1% loot event
@@ -67,35 +78,68 @@ export function exploreOnce() {
     const summary = `Found ${
       drop.quantity > 1 ? `${drop.quantity}x ` : ''
     }${item?.name ?? drop.itemId}`;
-    useGameStore.setState((s) => ({
-      ...s,
-      exploration: {
-        ...s.exploration,
-        view: 'loot',
-        lastEvent: { type: 'loot', summary, itemId: drop.itemId },
-        recentLog: trimLog([...s.exploration.recentLog, summary]),
-      },
-    }));
+    let playerLeveled = false;
+    useGameStore.setState((s) => {
+      const xpRes = gainSkillXpState(s, 'exploration', 5);
+      playerLeveled = xpRes.playerLeveled;
+      return {
+        ...xpRes.state,
+        exploration: {
+          ...xpRes.state.exploration,
+          view: 'loot',
+          lastEvent: { type: 'loot', summary, itemId: drop.itemId },
+          recentLog: trimLog([...xpRes.state.exploration.recentLog, summary]),
+        },
+      };
+    });
+    showToast('+5 Exploration XP');
+    if (playerLeveled) {
+      showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+    }
     return { type: 'loot', itemId: drop.itemId, quantity: drop.quantity } as const;
   }
   if (loot.credits > 0) {
     const summary = `Found ${loot.credits} credits`;
-    useGameStore.setState((s) => ({
-      ...s,
-      resources: {
-        ...s.resources,
-        credits: s.resources.credits + loot.credits,
-      },
-      exploration: {
-        ...s.exploration,
-        view: 'loot',
-        lastEvent: { type: 'loot', summary, credits: loot.credits },
-        recentLog: trimLog([...s.exploration.recentLog, summary]),
-      },
-    }));
+    let playerLeveled = false;
+    useGameStore.setState((s) => {
+      const xpRes = gainSkillXpState(s, 'exploration', 5);
+      playerLeveled = xpRes.playerLeveled;
+      return {
+        ...xpRes.state,
+        resources: {
+          ...xpRes.state.resources,
+          credits: xpRes.state.resources.credits + loot.credits,
+        },
+        exploration: {
+          ...xpRes.state.exploration,
+          view: 'loot',
+          lastEvent: { type: 'loot', summary, credits: loot.credits },
+          recentLog: trimLog([...xpRes.state.exploration.recentLog, summary]),
+        },
+      };
+    });
+    showToast('+5 Exploration XP');
+    if (playerLeveled) {
+      showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+    }
     return { type: 'credits', amount: loot.credits } as const;
   }
-  appendExplorationLog('Found nothing');
+  let playerLeveled = false;
+  useGameStore.setState((s) => {
+    const xpRes = gainSkillXpState(s, 'exploration', 5);
+    playerLeveled = xpRes.playerLeveled;
+    return {
+      ...xpRes.state,
+      exploration: {
+        ...xpRes.state.exploration,
+        recentLog: trimLog([...xpRes.state.exploration.recentLog, 'Found nothing']),
+      },
+    };
+  });
+  showToast('+5 Exploration XP');
+  if (playerLeveled) {
+    showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+  }
   return { type: 'nothing' } as const;
 }
 

@@ -3,6 +3,7 @@ import { useGameStore } from '../../game/state/store';
 import { BASE_HACK_DURATION, performHack } from '../../game/hacking';
 import { addItemToInventory } from '../../game/items';
 import { getNextLevelXp } from '../../game/skills';
+import { showToast } from '../Toast';
 import Card from '../components/Card';
 import ButtonNeon from '../components/ButtonNeon';
 import ProgressBarNeon from '../components/ProgressBarNeon';
@@ -30,12 +31,19 @@ export default function HackingTab() {
         clearInterval(interval);
 
         let loot: string | null = null;
+        let playerLeveled = false;
         setState((state) => {
-          const { state: updated, loot: drop } = performHack(state);
+          const { state: updated, loot: drop, playerLeveled: leveled } = performHack(
+            state,
+          );
           loot = drop ?? null;
+          playerLeveled = leveled ?? false;
           return { ...updated, hacking: { ...updated.hacking, inProgress: false } };
         });
         if (loot) addItemToInventory(loot);
+        if (playerLeveled) {
+          showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+        }
 
         setInProgress(false);
         setProgress(0);

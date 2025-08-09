@@ -33,6 +33,5 @@ export const enemies: Enemy[] = [
   },
 ];
 
-export function getEnemy(id: string): Enemy | undefined {
-  return enemies.find((e) => e.id === id);
-}
+export const getEnemyById = (id: string): Enemy | undefined =>
+  enemies.find((e) => e.id === id);

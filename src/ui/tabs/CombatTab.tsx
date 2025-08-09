@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { attack, flee, quickHeal, startCombat, getEnemy } from '../../game/combat';
-import { enemies } from '../../data/enemies';
+import { attack, flee, quickHeal, startCombat } from '../../game/combat';
+import { enemies, getEnemyById } from '../../data/enemies';
 import { useGameStore } from '../../game/state/store';
 
 export default function CombatTab() {
@@ -8,7 +8,7 @@ export default function CombatTab() {
   const player = useGameStore((s) => s.player);
   const [selected, setSelected] = useState(enemies[0]?.id ?? '');
 
-  const enemy = combat.enemyId ? getEnemy(combat.enemyId) : null;
+  const enemy = combat.enemyId ? getEnemyById(combat.enemyId) : null;
 
   return (
     <div className="space-y-4 p-4">

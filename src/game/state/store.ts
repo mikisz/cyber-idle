@@ -26,7 +26,9 @@ export interface GameState {
     enemyHp: number;
     inFight: boolean;
     log: string[];
+    fromExploration: boolean;
   };
+  explorationLog: string[];
   meta: { lastSaveTimestamp: number | null };
 }
 
@@ -47,7 +49,8 @@ export const initialState: GameState = {
   inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },
   location: null,
-  combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
+  combat: { enemyId: null, enemyHp: 0, inFight: false, log: [], fromExploration: false },
+  explorationLog: [],
   meta: { lastSaveTimestamp: null },
 };
 

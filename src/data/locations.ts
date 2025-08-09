@@ -3,6 +3,7 @@ export interface Location {
   name: string;
   enemies: string[]; // enemy IDs
   description?: string;
+  encounterRates?: { loot: number };
 }
 
 export const locations: Location[] = [

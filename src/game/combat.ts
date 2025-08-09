@@ -15,7 +15,7 @@ function trimLog(log: string[]): string[] {
   return log.slice(-10);
 }
 
-export function startCombat(enemyId: string) {
+export function startCombat(enemyId: string, opts?: { fromExploration?: boolean }) {
   const enemy = getEnemyById(enemyId);
   if (!enemy) return;
   useGameStore.setState((s) => ({
@@ -25,6 +25,7 @@ export function startCombat(enemyId: string) {
       enemyHp: enemy.hp,
       inFight: true,
       log: [`Engaged ${enemy.name}`],
+      fromExploration: opts?.fromExploration ?? false,
     },
   }));
 }
@@ -44,6 +45,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
   }
   const gainedXp = getEnemyXp(enemy);
   addCombatXp(gainedXp);
+  const fromExploration = state.combat.fromExploration;
   useGameStore.setState((s) => {
     const resources = { ...s.resources };
     resources.credits += lootCredits;
@@ -61,6 +63,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
         enemyHp: 0,
         inFight: false,
         log: trimLog([...log, ...lootMessages, `Defeated ${enemy.name}`]),
+        fromExploration,
       },
     };
   });
@@ -78,7 +81,13 @@ function handleDefeat(log: string[]) {
       ...s,
       resources: { ...s.resources, credits: s.resources.credits - lost },
       player: { ...s.player, hp: s.player.hpMax },
-      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(newLog) },
+      combat: {
+        enemyId: null,
+        enemyHp: 0,
+        inFight: false,
+        log: trimLog(newLog),
+        fromExploration: false,
+      },
       location: null,
     };
   });
@@ -127,7 +136,13 @@ export function flee() {
     log.push('You fled the battle');
     useGameStore.setState((s) => ({
       ...s,
-      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(log) },
+      combat: {
+        enemyId: null,
+        enemyHp: 0,
+        inFight: false,
+        log: trimLog(log),
+        fromExploration: state.combat.fromExploration,
+      },
     }));
     return;
   }

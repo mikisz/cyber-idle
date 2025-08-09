@@ -15,14 +15,9 @@ describe('combat system', () => {
   });
 
   it('winning a fight grants rewards', () => {
-    const rand = vi
-      .spyOn(Math, 'random')
-      .mockReturnValueOnce(0) // player damage variance
-      .mockReturnValueOnce(0) // credits roll
-      .mockReturnValueOnce(0) // item drop chance
-      .mockReturnValueOnce(0); // item quantity
+    const rand = vi.spyOn(Math, 'random').mockReturnValue(0);
 
-    useGameStore.setState((s) => ({
+    useGameStore.setState(() => ({
       ...initialState,
       player: { ...initialState.player, atk: 50 },
     }));
@@ -33,7 +28,7 @@ describe('combat system', () => {
     const state = useGameStore.getState();
     expect(state.skills.combat.xp).toBe(12);
     expect(state.player.credits).toBeGreaterThan(0);
-    expect(state.inventory.scrap).toBe(1);
+    expect(state.inventory).toContain('medkit');
 
     rand.mockRestore();
   });

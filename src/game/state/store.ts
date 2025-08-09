@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 
 export interface GameState {
+  resources: { credits: number; data: number };
   player: {
     hpMax: number;
     hp: number;
     atk: number;
     def: number;
-    credits: number;
-    data: number;
   };
   skills: {
     hacking: { level: number; xp: number };
@@ -32,13 +31,12 @@ export interface GameState {
 }
 
 export const initialState: GameState = {
+  resources: { credits: 0, data: 0 },
   player: {
     hpMax: 50,
     hp: 50,
     atk: 5,
     def: 2,
-    credits: 0,
-    data: 0,
   },
   skills: {
     hacking: { level: 1, xp: 0 },

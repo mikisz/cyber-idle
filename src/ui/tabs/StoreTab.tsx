@@ -4,7 +4,7 @@ import { buyConsumable } from '../../game/shop';
 import { showToast } from '../Toast';
 
 export default function StoreTab() {
-  const credits = useGameStore((s) => s.player.credits);
+  const credits = useGameStore((s) => s.resources.credits);
   const consumables = items.filter(
     (i) =>
       i.type === 'consumable' &&

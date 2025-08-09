@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { attack, calcDamage, startCombat, flee } from './combat';
 import { useGameStore, initialState } from './state/store';
+import { getEnemyById, getEnemyXp } from '../data/enemies';
 
 describe('combat system', () => {
   beforeEach(() => {
@@ -27,8 +28,9 @@ describe('combat system', () => {
     attack();
 
     const state = useGameStore.getState();
-    expect(state.skills.combat.xp).toBe(10);
-    expect(state.player.credits).toBe(5);
+    const enemy = getEnemyById('street_thug')!;
+    expect(state.skills.combat.xp).toBe(getEnemyXp(enemy));
+    expect(state.resources.credits).toBe(5);
     expect(state.inventory.scrap_metal).toBe(1);
 
     rand.mockRestore();
@@ -54,13 +56,14 @@ describe('combat system', () => {
     const rand = vi.spyOn(Math, 'random').mockReturnValue(0.5);
     useGameStore.setState(() => ({
       ...initialState,
-      player: { ...initialState.player, hp: 1, credits: 100 },
+      player: { ...initialState.player, hp: 1 },
+      resources: { ...initialState.resources, credits: 100 },
     }));
     startCombat('street_thug');
     attack();
     const state = useGameStore.getState();
     expect(state.player.hp).toBe(state.player.hpMax);
-    expect(state.player.credits).toBe(90);
+    expect(state.resources.credits).toBe(90);
     expect(state.location).toBeNull();
     rand.mockRestore();
   });

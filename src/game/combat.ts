@@ -1,8 +1,10 @@
 import { useGameStore } from './state/store';
-import { getEnemyById, type Enemy } from '../data/enemies';
+import { getEnemyById, type Enemy, getEnemyXp } from '../data/enemies';
 import { getItem } from '../data/items';
 import { rollLoot } from '../data/lootTables';
 import { addItemToInventory } from './items';
+import { addCombatXp } from './skills';
+import { showToast } from '../ui/Toast';
 
 export function calcDamage(atk: number, def: number): number {
   const variance = Math.floor(Math.random() * 3) - 1; // -1,0,1
@@ -40,25 +42,20 @@ function awardVictory(enemy: Enemy, log: string[]) {
   if (lootCredits > 0) {
     lootMessages.push(`Looted ${lootCredits} credits`);
   }
+  const gainedXp = getEnemyXp(enemy);
+  addCombatXp(gainedXp);
   useGameStore.setState((s) => {
-    const player = { ...s.player };
-    player.credits += lootCredits;
+    const resources = { ...s.resources };
+    resources.credits += lootCredits;
     if (enemy.creditsDrop) {
       const { min, max } = enemy.creditsDrop;
       const credits = Math.floor(Math.random() * (max - min + 1)) + min;
-      player.credits += credits;
+      resources.credits += credits;
       lootMessages.push(`Looted ${credits} credits`);
-    }
-    let { level, xp } = s.skills.combat;
-    xp += 10; // placeholder xp per victory
-    while (xp >= level * 100) {
-      xp -= level * 100;
-      level += 1;
     }
     return {
       ...s,
-      player,
-      skills: { ...s.skills, combat: { level, xp } },
+      resources,
       combat: {
         enemyId: null,
         enemyHp: 0,
@@ -67,6 +64,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
       },
     };
   });
+  showToast(`+${gainedXp} Combat XP`);
   for (const drop of items) {
     addItemToInventory(drop.itemId, drop.quantity);
   }
@@ -74,11 +72,12 @@ function awardVictory(enemy: Enemy, log: string[]) {
 
 function handleDefeat(log: string[]) {
   useGameStore.setState((s) => {
-    const lost = Math.floor(s.player.credits * 0.1);
+    const lost = Math.floor(s.resources.credits * 0.1);
     const newLog = [...log, `You were defeated and lost ${lost} credits`];
     return {
       ...s,
-      player: { ...s.player, hp: s.player.hpMax, credits: s.player.credits - lost },
+      resources: { ...s.resources, credits: s.resources.credits - lost },
+      player: { ...s.player, hp: s.player.hpMax },
       combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(newLog) },
       location: null,
     };

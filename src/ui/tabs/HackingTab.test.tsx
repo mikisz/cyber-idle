@@ -20,7 +20,7 @@ describe('HackingTab', () => {
     });
 
     const state = useGameStore.getState();
-    expect(state.player.credits).toBe(50);
+    expect(state.resources.credits).toBe(50);
     expect(state.skills.hacking.xp).toBe(5);
 
     vi.useRealTimers();
@@ -42,7 +42,7 @@ describe('HackingTab', () => {
     });
 
     const state = useGameStore.getState();
-    expect(state.player.credits).toBe(100);
+    expect(state.resources.credits).toBe(100);
     expect(state.skills.hacking.level).toBe(2);
     expect(state.skills.hacking.xp).toBe(5);
 

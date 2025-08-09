@@ -31,7 +31,7 @@ describe('offline progress', () => {
     const result = applyOfflineProgress(state, 30 * 1000);
     expect(result.rewards.credits).toBe(0);
     expect(result.rewards.xp).toBe(0);
-    expect(result.state.player.credits).toBe(0);
+    expect(result.state.resources.credits).toBe(0);
   });
 
   it('Handles no current hacking action', () => {

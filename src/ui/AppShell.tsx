@@ -4,26 +4,31 @@ import CombatTab from './tabs/CombatTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
 import UpgradesTab from './tabs/UpgradesTab';
+import CharacterTab from './tabs/CharacterTab';
 import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
 import { NeonToast } from './Toast';
 
-type Tab = 'hacking' | 'combat' | 'inventory' | 'store' | 'upgrades';
+type Tab = 'hacking' | 'combat' | 'inventory' | 'store' | 'upgrades' | 'character';
 
 const tabs: { key: Tab; label: string }[] = [
+  { key: 'character', label: 'Character' },
   { key: 'hacking', label: 'Hacking' },
   { key: 'combat', label: 'Combat' },
   { key: 'inventory', label: 'Inventory' },
   { key: 'store', label: 'Store' },
-  { key: 'upgrades', label: 'Upgrades' }
+  { key: 'upgrades', label: 'Upgrades' },
 ];
 
 export default function AppShell() {
   const [current, setCurrent] = useState<Tab>('hacking');
-  const player = useGameStore((s) => s.player);
+  const resources = useGameStore((s) => s.resources);
+  const skills = useGameStore((s) => s.skills);
 
   const renderTab = () => {
     switch (current) {
+      case 'character':
+        return <CharacterTab />;
       case 'combat':
         return <CombatTab />;
       case 'inventory':
@@ -41,9 +46,11 @@ export default function AppShell() {
     <div className="flex h-full flex-col bg-background">
       <NeonToast />
       <header className="flex justify-between p-4 text-neon-cyan">
-        <span>Credits: {player.credits}</span>
+        <span>Credits: {resources.credits}</span>
         <div className="flex items-center gap-2">
-          <span>Data: {player.data}</span>
+          <span>Data: {resources.data}</span>
+          <span className="text-xs">Hacking L{skills.hacking.level}</span>
+          <span className="text-xs">Combat L{skills.combat.level}</span>
           <SettingsMenu />
         </div>
       </header>

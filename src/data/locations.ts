@@ -1,36 +1,30 @@
+export interface LocationLoot {
+  itemId: string;
+  chance: number;
+}
+
 export interface Location {
   id: string;
   name: string;
-  description: string;
-  enemies: string[]; // enemy ids
-  loot: string[]; // item ids
-  encounterRates: { enemy: number; loot: number };
+  enemies: string[]; // enemy IDs
+  loot?: LocationLoot[];
+  description?: string;
 }
 
 export const locations: Location[] = [
   {
-    id: 'neon_street',
-    name: 'Neon Street',
-    description: 'The city\'s bustling thoroughfare.',
-    enemies: ['street_thug', 'data_leech'],
-    loot: ['medkit', 'small_credchip'],
-    encounterRates: { enemy: 0.99, loot: 0.01 },
+    id: 'dark_alley',
+    name: 'Dark Alley',
+    enemies: ['street_thug'],
+    loot: [{ itemId: 'medkit_small', chance: 0.01 }],
+    description: 'A shadowy alley where muggers lurk.',
   },
   {
-    id: 'abandoned_factory',
-    name: 'Abandoned Factory',
-    description: 'Derelict industrial complex crawling with dangers.',
-    enemies: ['cyber_bruiser', 'rogue_drone'],
-    loot: ['medkit', 'energy_cell'],
-    encounterRates: { enemy: 0.9, loot: 0.1 },
-  },
-  {
-    id: 'darkgrid_network',
-    name: 'Darkgrid Network',
-    description: 'Hidden nodes of the underground net.',
-    enemies: ['netrunner', 'ice_program'],
-    loot: ['large_credchip', 'data_fragment'],
-    encounterRates: { enemy: 0.8, loot: 0.2 },
+    id: 'abandoned_warehouse',
+    name: 'Abandoned Warehouse',
+    enemies: ['street_thug', 'cyber_rat'],
+    loot: [{ itemId: 'knife_rusty', chance: 0.05 }],
+    description: 'Dusty building with hidden corners.',
   },
 ];
 

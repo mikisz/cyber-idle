@@ -13,15 +13,18 @@ export function explore() {
   const loc = getLocation(state.location);
   if (!loc) return null;
   const roll = Math.random();
-  if (roll < loc.encounterRates.enemy) {
+  if (loc.enemies.length && roll < 0.8) {
     const enemyId = loc.enemies[Math.floor(Math.random() * loc.enemies.length)];
     startCombat(enemyId);
     return { type: 'enemy', enemyId } as const;
   }
-  if (roll < loc.encounterRates.enemy + loc.encounterRates.loot) {
-    const itemId = loc.loot[Math.floor(Math.random() * loc.loot.length)];
-    addItemToInventory(itemId);
-    return { type: 'loot', itemId } as const;
+  if (loc.loot) {
+    for (const entry of loc.loot) {
+      if (Math.random() < entry.chance) {
+        addItemToInventory(entry.itemId);
+        return { type: 'loot', itemId: entry.itemId } as const;
+      }
+    }
   }
   return { type: 'nothing' } as const;
 }

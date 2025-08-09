@@ -1,6 +1,6 @@
-export interface DropEntry {
+export interface EnemyDrop {
   itemId: string;
-  dropChance: number; // 0-1
+  chance: number;
 }
 
 export interface Enemy {
@@ -8,76 +8,28 @@ export interface Enemy {
   name: string;
   hp: number;
   atk: number;
-  description: string;
-  dropTable: DropEntry[];
+  possibleDrops: EnemyDrop[];
+  creditsDrop?: { min: number; max: number };
+  description?: string;
 }
 
 export const enemies: Enemy[] = [
   {
     id: 'street_thug',
     name: 'Street Thug',
-    hp: 50,
-    atk: 5,
-    description: 'A low-level punk looking for trouble.',
-    dropTable: [
-      { itemId: 'small_credchip', dropChance: 0.6 },
-      { itemId: 'medkit', dropChance: 0.2 },
-    ],
+    hp: 20,
+    atk: 3,
+    possibleDrops: [{ itemId: 'knife_rusty', chance: 0.2 }],
+    creditsDrop: { min: 5, max: 15 },
+    description: 'A desperate punk looking for cash.',
   },
   {
-    id: 'data_leech',
-    name: 'Data Leech',
-    hp: 40,
-    atk: 8,
-    description: 'A scavenger that feeds on unsecured data.',
-    dropTable: [
-      { itemId: 'small_credchip', dropChance: 0.5 },
-      { itemId: 'energy_cell', dropChance: 0.15 },
-    ],
-  },
-  {
-    id: 'cyber_bruiser',
-    name: 'Cyber Bruiser',
-    hp: 70,
-    atk: 10,
-    description: 'Heavily augmented street fighter.',
-    dropTable: [
-      { itemId: 'small_credchip', dropChance: 0.3 },
-      { itemId: 'medkit', dropChance: 0.25 },
-    ],
-  },
-  {
-    id: 'rogue_drone',
-    name: 'Rogue Drone',
-    hp: 60,
-    atk: 9,
-    description: 'Autonomous drone gone haywire.',
-    dropTable: [
-      { itemId: 'energy_cell', dropChance: 0.3 },
-      { itemId: 'small_credchip', dropChance: 0.4 },
-    ],
-  },
-  {
-    id: 'netrunner',
-    name: 'Netrunner',
-    hp: 45,
-    atk: 7,
-    description: 'A hacker defending their turf.',
-    dropTable: [
-      { itemId: 'large_credchip', dropChance: 0.4 },
-      { itemId: 'data_fragment', dropChance: 0.2 },
-    ],
-  },
-  {
-    id: 'ice_program',
-    name: 'ICE Program',
-    hp: 55,
-    atk: 9,
-    description: 'Defensive security algorithm made manifest.',
-    dropTable: [
-      { itemId: 'data_fragment', dropChance: 0.25 },
-      { itemId: 'energy_cell', dropChance: 0.2 },
-    ],
+    id: 'cyber_rat',
+    name: 'Cyber Rat',
+    hp: 15,
+    atk: 2,
+    possibleDrops: [{ itemId: 'medkit_small', chance: 0.05 }],
+    creditsDrop: { min: 1, max: 5 },
   },
 ];
 

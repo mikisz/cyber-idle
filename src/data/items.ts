@@ -1,63 +1,52 @@
-export type ItemType = 'weapon' | 'armor' | 'accessory' | 'consumable' | 'currency' | 'quest';
-
 export interface Item {
   id: string;
   name: string;
-  type: ItemType;
-  rarity: 'common' | 'uncommon' | 'rare';
+  type: 'weapon' | 'armor' | 'accessory' | 'consumable';
   source: 'loot-only' | 'shop-only' | 'both';
-  effect?: {
-    hp?: number; // amount of HP to heal
-    energy?: number; // future use
-  };
-  value?: number; // credit value for currency items
+  rarity?: 'common' | 'uncommon' | 'rare' | 'epic';
   description?: string;
+  iconText?: string; // placeholder symbol
+  stats?: { atk?: number; hpMax?: number; hackingSpeed?: number };
+  effect?: { heal?: number };
+  priceCredits?: number;
 }
 
 export const items: Item[] = [
   {
-    id: 'medkit',
-    name: 'Medkit',
-    type: 'consumable',
-    rarity: 'common',
+    id: 'knife_rusty',
+    name: 'Rusty Knife',
+    type: 'weapon',
     source: 'loot-only',
-    effect: { hp: 50 },
-    description: 'Heals 50 HP',
+    stats: { atk: 2 },
+    rarity: 'common',
+    iconText: '🗡',
   },
   {
-    id: 'small_credchip',
-    name: 'Small Credchip',
-    type: 'currency',
-    rarity: 'common',
-    source: 'loot-only',
-    value: 100,
-    description: 'A small cache of credits worth 100',
+    id: 'medkit_small',
+    name: 'Medkit (S)',
+    type: 'consumable',
+    source: 'shop-only',
+    effect: { heal: 50 },
+    priceCredits: 50,
+    iconText: '💊',
   },
   {
-    id: 'energy_cell',
-    name: 'Energy Cell',
-    type: 'consumable',
-    rarity: 'common',
+    id: 'jacket_leather',
+    name: 'Leather Jacket',
+    type: 'armor',
     source: 'both',
-    effect: { hp: 30, energy: 10 },
-    description: 'Heals 30 HP and restores 10 energy',
-  },
-  {
-    id: 'large_credchip',
-    name: 'Large Credchip',
-    type: 'currency',
+    stats: { hpMax: 10 },
     rarity: 'uncommon',
-    source: 'loot-only',
-    value: 500,
-    description: 'Valuable credit cache worth 500',
+    iconText: '🛡',
   },
   {
-    id: 'data_fragment',
-    name: 'Data Fragment',
-    type: 'quest',
-    rarity: 'rare',
+    id: 'ring_data',
+    name: 'Data Ring',
+    type: 'accessory',
     source: 'loot-only',
-    description: 'Encrypted data needed for missions',
+    stats: { hackingSpeed: 0.05 },
+    rarity: 'rare',
+    iconText: '💍',
   },
 ];
 

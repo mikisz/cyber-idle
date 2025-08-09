@@ -3,7 +3,7 @@ import { getEnemyById, type Enemy, getEnemyXp } from '../data/enemies';
 import { getItem } from '../data/items';
 import { rollLoot } from '../data/lootTables';
 import { addItemToInventory } from './items';
-import { addCombatXp } from './skills';
+import { gainSkillXpState } from './skills';
 import { showToast } from '../ui/Toast';
 
 export function calcDamage(atk: number, def: number): number {
@@ -45,9 +45,11 @@ function awardVictory(enemy: Enemy, log: string[]) {
     lootMessages.push(`Looted ${lootCredits} credits`);
   }
   const gainedXp = getEnemyXp(enemy);
-  addCombatXp(gainedXp);
+  let playerLeveled = false;
   useGameStore.setState((s) => {
-    const resources = { ...s.resources };
+    const xpRes = gainSkillXpState(s, 'combat', gainedXp);
+    playerLeveled = xpRes.playerLeveled;
+    const resources = { ...xpRes.state.resources };
     resources.credits += lootCredits;
     if (enemy.creditsDrop) {
       const { min, max } = enemy.creditsDrop;
@@ -56,7 +58,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
       lootMessages.push(`Looted ${credits} credits`);
     }
     return {
-      ...s,
+      ...xpRes.state,
       resources,
       combat: {
         enemyId: null,
@@ -65,7 +67,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
         log: trimLog([...log, ...lootMessages, `Defeated ${enemy.name}`]),
       },
       exploration: {
-        ...s.exploration,
+        ...xpRes.state.exploration,
         view: 'location',
         currentEnemyId: null,
         lastEvent: {
@@ -75,13 +77,16 @@ function awardVictory(enemy: Enemy, log: string[]) {
           itemId: items[0]?.itemId,
         },
         recentLog: trimLog([
-          ...s.exploration.recentLog,
+          ...xpRes.state.exploration.recentLog,
           `Defeated ${enemy.name}`,
         ]),
       },
     };
   });
   showToast(`+${gainedXp} Combat XP`);
+  if (playerLeveled) {
+    showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
+  }
   for (const drop of items) {
     addItemToInventory(drop.itemId, drop.quantity);
   }

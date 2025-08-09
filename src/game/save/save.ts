@@ -1,4 +1,6 @@
-import { GameState } from '../state/store';
+import { GameState, initialState } from '../state/store';
+import { getNextLevelXp } from '../skills';
+import { calculateBonuses } from '../items';
 
 const DB_NAME = 'cyber-idle';
 const STORE_NAME = 'game';
@@ -28,7 +30,34 @@ export async function loadGame(): Promise<GameState | null> {
     const req = tx.objectStore(STORE_NAME).get(SAVE_KEY);
     req.onsuccess = () => {
       const data = req.result as PersistedData | undefined;
-      resolve(data ? data.state : null);
+      if (!data) {
+        resolve(null);
+        return;
+      }
+      const s = data.state as GameState;
+      const merged: GameState = {
+        ...initialState,
+        ...s,
+        player: { ...initialState.player, ...s.player },
+        skills: { ...initialState.skills, ...s.skills },
+        hacking: { ...initialState.hacking, ...s.hacking },
+        upgrades: { ...initialState.upgrades, ...s.upgrades },
+        inventory: { ...initialState.inventory, ...s.inventory },
+        equipped: { ...initialState.equipped, ...s.equipped },
+        bonuses: s.bonuses ?? calculateBonuses(s.equipped ?? initialState.equipped),
+        combat: { ...initialState.combat, ...s.combat },
+        exploration: { ...initialState.exploration, ...s.exploration },
+        meta: { ...initialState.meta, ...s.meta },
+      };
+      if (typeof merged.playerLevel !== 'number') merged.playerLevel = 1;
+      if (typeof merged.playerXP !== 'number') merged.playerXP = 0;
+      merged.playerXPToNextLevel =
+        typeof s.playerXPToNextLevel === 'number'
+          ? s.playerXPToNextLevel
+          : getNextLevelXp(merged.playerLevel);
+      if (!merged.skills.exploration)
+        merged.skills.exploration = { level: 1, xp: 0 };
+      resolve(merged);
     };
     req.onerror = () => reject(req.error);
   });

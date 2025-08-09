@@ -8,9 +8,13 @@ export interface GameState {
     atk: number;
     def: number;
   };
+  playerLevel: number;
+  playerXP: number;
+  playerXPToNextLevel: number;
   skills: {
     hacking: { level: number; xp: number };
     combat: { level: number; xp: number };
+    exploration: { level: number; xp: number };
   };
   hacking: { timeMultiplier: number; inProgress: boolean };
   upgrades: { owned: Record<string, boolean> };
@@ -19,6 +23,12 @@ export interface GameState {
     weapon: string | null;
     armor: string | null;
     accessory: string | null;
+  };
+  bonuses: {
+    damage: number;
+    defense: number;
+    hackingSpeed: number;
+    exploration: number;
   };
   combat: {
     enemyId: string | null;
@@ -49,14 +59,19 @@ export const initialState: GameState = {
     atk: 5,
     def: 2,
   },
+  playerLevel: 1,
+  playerXP: 0,
+  playerXPToNextLevel: 100,
   skills: {
     hacking: { level: 1, xp: 0 },
     combat: { level: 1, xp: 0 },
+    exploration: { level: 1, xp: 0 },
   },
   hacking: { timeMultiplier: 1, inProgress: false },
   upgrades: { owned: {} },
   inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },
+  bonuses: { damage: 0, defense: 0, hackingSpeed: 1, exploration: 0 },
   combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
   exploration: {
     currentLocationId: null,

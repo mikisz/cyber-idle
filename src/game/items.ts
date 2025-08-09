@@ -8,6 +8,27 @@ function applyItem(player: GameState['player'], item: Item, op: 1 | -1) {
   return newPlayer;
 }
 
+export function calculateBonuses(
+  equipped: GameState['equipped'],
+): GameState['bonuses'] {
+  let damage = 0;
+  let defense = 0;
+  let hackingSpeed = 1;
+  let exploration = 0;
+  for (const slot of Object.keys(equipped) as (keyof typeof equipped)[]) {
+    const id = equipped[slot];
+    if (!id) continue;
+    const item = getItem(id);
+    if (!item?.stats) continue;
+    if (item.stats.attack) damage += item.stats.attack;
+    if (item.stats.defense) defense += item.stats.defense;
+    if (item.stats.hackingSpeed) hackingSpeed *= item.stats.hackingSpeed;
+    // @ts-expect-error optional exploration stat
+    if (item.stats.exploration) exploration += item.stats.exploration;
+  }
+  return { damage, defense, hackingSpeed, exploration };
+}
+
 export function addItemToInventory(itemId: string, quantity = 1) {
   const item = getItem(itemId);
   if (!item) {
@@ -43,7 +64,14 @@ export function equipItem(itemId: string) {
     }
     newEquipped[slot] = itemId;
     player = applyItem(player, item, 1);
-    return { ...state, inventory: newInventory, equipped: newEquipped, player };
+    const bonuses = calculateBonuses(newEquipped);
+    return {
+      ...state,
+      inventory: newInventory,
+      equipped: newEquipped,
+      player,
+      bonuses,
+    };
   });
 }
 
@@ -61,7 +89,14 @@ export function unequipItem(slot: 'weapon' | 'armor' | 'accessory') {
     if (item) {
       player = applyItem(player, item, -1);
     }
-    return { ...state, inventory: newInventory, equipped: newEquipped, player };
+    const bonuses = calculateBonuses(newEquipped);
+    return {
+      ...state,
+      inventory: newInventory,
+      equipped: newEquipped,
+      player,
+      bonuses,
+    };
   });
 }
 

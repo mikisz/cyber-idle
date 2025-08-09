@@ -1,7 +1,7 @@
 import { useGameStore } from './state/store';
 import { getEnemyById, type Enemy, getEnemyXp } from '../data/enemies';
 import { getItem } from '../data/items';
-import { rollLoot } from '../data/lootTables';
+import { getLocation } from '../data/locations';
 import { addItemToInventory } from './items';
 import { gainSkillXpState } from './skills';
 import { showToast } from '../ui/Toast';
@@ -13,6 +13,27 @@ export function calcDamage(atk: number, def: number): number {
 
 function trimLog(log: string[]): string[] {
   return log.slice(-10);
+}
+
+function rollLoot(locationId: string) {
+  const loc = getLocation(locationId);
+  const items: { itemId: string; quantity: number }[] = [];
+  let credits = 0;
+  if (!loc?.lootTable) return { items, credits };
+  for (const drop of loc.lootTable) {
+    if (Math.random() < drop.chance) {
+      const qty =
+        drop.min !== undefined && drop.max !== undefined
+          ? Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
+          : drop.min ?? 1;
+      if (drop.itemId === 'credits') {
+        credits += qty;
+      } else {
+        items.push({ itemId: drop.itemId, quantity: qty });
+      }
+    }
+  }
+  return { items, credits };
 }
 
 export function startCombat(enemyId: string) {
@@ -30,10 +51,10 @@ export function startCombat(enemyId: string) {
 }
 
 function awardVictory(enemy: Enemy, log: string[]) {
-  const state = useGameStore.getState();
-  const { items, credits: lootCredits } = rollLoot(
-    state.exploration.currentLocationId ?? '',
-  );
+    const state = useGameStore.getState();
+    const { items, credits: lootCredits } = rollLoot(
+      state.exploration.currentLocationId ?? '',
+    );
   const lootMessages: string[] = [];
   for (const drop of items) {
     const item = getItem(drop.itemId);

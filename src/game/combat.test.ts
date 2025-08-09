@@ -21,7 +21,11 @@ describe('combat system', () => {
     useGameStore.setState(() => ({
       ...initialState,
       player: { ...initialState.player, atk: 100 },
-      location: 'slums',
+      exploration: {
+        ...initialState.exploration,
+        currentLocationId: 'slums',
+        view: 'location',
+      },
     }));
 
     startCombat('street_thug');
@@ -58,13 +62,18 @@ describe('combat system', () => {
       ...initialState,
       player: { ...initialState.player, hp: 1 },
       resources: { ...initialState.resources, credits: 100 },
+      exploration: {
+        ...initialState.exploration,
+        currentLocationId: 'slums',
+        view: 'location',
+      },
     }));
     startCombat('street_thug');
     attack();
     const state = useGameStore.getState();
     expect(state.player.hp).toBe(state.player.hpMax);
     expect(state.resources.credits).toBe(90);
-    expect(state.location).toBeNull();
+    expect(state.exploration.currentLocationId).toBe('slums');
     rand.mockRestore();
   });
 });

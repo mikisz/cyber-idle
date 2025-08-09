@@ -20,15 +20,24 @@ export interface GameState {
     armor: string | null;
     accessory: string | null;
   };
-  location: string | null;
   combat: {
     enemyId: string | null;
     enemyHp: number;
     inFight: boolean;
     log: string[];
-    fromExploration: boolean;
   };
-  explorationLog: string[];
+  exploration: {
+    currentLocationId: string | null;
+    view: 'select' | 'location' | 'encounter' | 'loot';
+    currentEnemyId: string | null;
+    lastEvent?: {
+      type: 'loot' | 'enemy';
+      summary: string;
+      itemId?: string;
+      credits?: number;
+    };
+    recentLog: string[];
+  };
   meta: { lastSaveTimestamp: number | null };
 }
 
@@ -48,9 +57,13 @@ export const initialState: GameState = {
   upgrades: { owned: {} },
   inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },
-  location: null,
-  combat: { enemyId: null, enemyHp: 0, inFight: false, log: [], fromExploration: false },
-  explorationLog: [],
+  combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
+  exploration: {
+    currentLocationId: null,
+    view: 'select',
+    currentEnemyId: null,
+    recentLog: [],
+  },
   meta: { lastSaveTimestamp: null },
 };
 

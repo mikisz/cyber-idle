@@ -3,6 +3,10 @@ import { useGameStore } from '../../game/state/store';
 import { BASE_HACK_DURATION, performHack } from '../../game/hacking';
 import { addItemToInventory } from '../../game/items';
 import { getNextLevelXp } from '../../game/skills';
+import Card from '../components/Card';
+import ButtonNeon from '../components/ButtonNeon';
+import ProgressBarNeon from '../components/ProgressBarNeon';
+import SectionHeader from '../components/SectionHeader';
 
 export default function HackingTab() {
   const hacking = useGameStore((s) => s.skills.hacking);
@@ -54,22 +58,16 @@ export default function HackingTab() {
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
+      <SectionHeader>Hacking</SectionHeader>
       <div>Level: {hacking.level}</div>
-      <div>
-        XP: {hacking.xp} / {xpNeeded}
-      </div>
+      <div>XP: {hacking.xp} / {xpNeeded}</div>
       {inProgress && (
-        <div className="h-4 w-full bg-gray-800" role="progressbar">
-          <div
-            className="h-full bg-neon-cyan"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <ProgressBarNeon percentage={progress} />
       )}
-      <button onClick={startHack} disabled={inProgress}>
+      <ButtonNeon onClick={startHack} disabled={inProgress}>
         Start hack
-      </button>
-    </div>
+      </ButtonNeon>
+    </Card>
   );
 }

@@ -4,10 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0d0f14',
+        surface: '#0d0f14',
         neon: {
           cyan: '#00ffff',
-          magenta: '#ff00ff'
+          magenta: '#ff00ff',
+          yellow: '#ffff00'
         }
       },
       fontFamily: {

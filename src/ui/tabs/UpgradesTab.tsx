@@ -2,6 +2,9 @@ import { upgrades } from '../../data/upgrades';
 import { useGameStore } from '../../game/state/store';
 import { buyUpgrade } from '../../game/shop';
 import { showToast } from '../Toast';
+import Card from '../components/Card';
+import ButtonNeon from '../components/ButtonNeon';
+import SectionHeader from '../components/SectionHeader';
 
 export default function UpgradesTab() {
   const resources = useGameStore((s) => s.resources);
@@ -24,7 +27,8 @@ export default function UpgradesTab() {
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
+      <SectionHeader>Upgrades</SectionHeader>
       <p className="text-sm text-neon-cyan">
         Upgrades are permanent and automatically applied.
       </p>
@@ -43,17 +47,17 @@ export default function UpgradesTab() {
                   Credits: {u.costCredits}
                 </div>
               </div>
-              <button
+              <ButtonNeon
                 data-testid={`buy-${u.id}`}
                 onClick={() => buy(u.id, u.name)}
                 disabled={disabled}
               >
                 {isOwned ? 'Owned' : 'Buy'}
-              </button>
+              </ButtonNeon>
             </li>
           );
         })}
       </ul>
-    </div>
+    </Card>
   );
 }

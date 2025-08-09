@@ -6,6 +6,10 @@ import { getItem } from '../../data/items';
 import { setLocation, explore } from '../../game/exploration';
 import { addItemToInventory } from '../../game/items';
 import { useGameStore } from '../../game/state/store';
+import Card from '../components/Card';
+import ButtonNeon from '../components/ButtonNeon';
+import SectionHeader from '../components/SectionHeader';
+import Modal from '../components/Modal';
 
 interface Props {
   onNavigate: (tab: Tab) => void;
@@ -50,7 +54,8 @@ export default function ExplorationTab({ onNavigate }: Props) {
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
+      <SectionHeader>Exploration</SectionHeader>
       <div>
         <select
           value={currentLocation ?? ''}
@@ -65,22 +70,21 @@ export default function ExplorationTab({ onNavigate }: Props) {
           ))}
         </select>
       </div>
-      <button onClick={handleExplore} disabled={!currentLocation}>
+      <ButtonNeon onClick={handleExplore} disabled={!currentLocation}>
         Explore
-      </button>
+      </ButtonNeon>
       <div className="space-y-1">
         {log.map((l, i) => (
           <div key={i}>{l}</div>
         ))}
       </div>
-      {loot && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70">
-          <div className="space-y-4 bg-background p-4 text-center">
-            <div>You found {getItem(loot.itemId)?.name ?? loot.itemId}!</div>
-            <button onClick={confirmLoot}>Continue</button>
-          </div>
-        </div>
-      )}
-    </div>
+      <Modal
+        open={loot !== null}
+        onClose={() => setLoot(null)}
+        actions={<ButtonNeon onClick={confirmLoot}>Continue</ButtonNeon>}
+      >
+        You found {getItem(loot?.itemId ?? '')?.name ?? loot?.itemId}!
+      </Modal>
+    </Card>
   );
 }

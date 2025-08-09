@@ -2,6 +2,11 @@ import { items, getItem } from '../../data/items';
 import { useGameStore } from '../../game/state/store';
 import { buyConsumable } from '../../game/shop';
 import { showToast } from '../Toast';
+import { useState } from 'react';
+import Card from '../components/Card';
+import ButtonNeon from '../components/ButtonNeon';
+import SectionHeader from '../components/SectionHeader';
+import Modal from '../components/Modal';
 
 export default function StoreTab() {
   const credits = useGameStore((s) => s.resources.credits);
@@ -11,17 +16,24 @@ export default function StoreTab() {
       (i.source === 'shop-only' || i.source === 'both')
   );
 
-  const buy = (id: string) => {
-    const item = getItem(id);
+  const [pending, setPending] = useState<string | null>(null);
+
+  const confirmPurchase = () => {
+    if (!pending) return;
+    const item = getItem(pending);
     if (!item) return;
-    const success = buyConsumable(id);
+    const success = buyConsumable(pending);
     if (success) {
       showToast(`Purchased: ${item.name}`);
     }
+    setPending(null);
   };
 
+  const selectedItem = pending ? getItem(pending) : null;
+
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
+      <SectionHeader>Store</SectionHeader>
       <ul className="space-y-2">
         {consumables.map((item) => (
           <li key={item.id} className="flex items-center justify-between">
@@ -36,15 +48,35 @@ export default function StoreTab() {
                 Credits: {item.buyPriceCredits ?? 0}
               </div>
             </div>
-            <button
+            <ButtonNeon
               disabled={credits < (item.buyPriceCredits ?? 0)}
-              onClick={() => buy(item.id)}
+              onClick={() => setPending(item.id)}
             >
               Buy
-            </button>
+            </ButtonNeon>
           </li>
         ))}
       </ul>
-    </div>
+      <Modal
+        open={pending !== null}
+        onClose={() => setPending(null)}
+        actions={
+          pending && (
+            <>
+              <ButtonNeon onClick={confirmPurchase}>Confirm</ButtonNeon>
+              <ButtonNeon variant="danger" onClick={() => setPending(null)}>
+                Cancel
+              </ButtonNeon>
+            </>
+          )
+        }
+      >
+        {selectedItem && (
+          <div>
+            Buy {selectedItem.name} for {selectedItem.buyPriceCredits ?? 0} credits?
+          </div>
+        )}
+      </Modal>
+    </Card>
   );
 }

@@ -3,6 +3,9 @@ import { equipItem, unequipItem } from '../../game/items';
 import { consume } from '../../game/shop';
 import { getItem } from '../../data/items';
 import { showToast } from '../Toast';
+import ButtonNeon from '../components/ButtonNeon';
+import Card from '../components/Card';
+import SectionHeader from '../components/SectionHeader';
 
 function ItemStats({ id }: { id: string }) {
   const item = getItem(id);
@@ -35,22 +38,22 @@ export default function InventoryTab() {
     const id = equipped[slot];
     const item = id ? getItem(id) : null;
     return (
-      <button
+      <ButtonNeon
         key={slot}
-        className="w-28 border border-neon-cyan p-2"
+        className="w-28 flex flex-col items-start"
         onClick={() => id && unequipItem(slot)}
       >
         <div className="font-bold">{slot.charAt(0).toUpperCase() + slot.slice(1)}</div>
         <div>{item ? item.name : 'Empty'}</div>
         {id && <ItemStats id={id} />}
-      </button>
+      </ButtonNeon>
     );
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
       <div className="space-y-2">
-        <div className="font-bold">Equipped</div>
+        <SectionHeader>Equipped</SectionHeader>
         <div className="flex gap-2">
           {renderSlot('weapon')}
           {renderSlot('armor')}
@@ -58,7 +61,7 @@ export default function InventoryTab() {
         </div>
       </div>
       <div className="space-y-2">
-        <div className="font-bold">Inventory</div>
+        <SectionHeader>Inventory</SectionHeader>
         {Object.keys(inventory).length === 0 ? (
           <div>Empty</div>
         ) : (
@@ -67,8 +70,8 @@ export default function InventoryTab() {
               const item = getItem(id);
               return (
                 <li key={id}>
-                  <button
-                    className="w-full border border-neon-cyan p-2 text-left"
+                  <ButtonNeon
+                    className="w-full flex flex-col items-start text-left"
                     onClick={() => handleItem(id)}
                   >
                     <div>
@@ -76,13 +79,13 @@ export default function InventoryTab() {
                       {qty > 1 && ` x${qty}`}
                     </div>
                     {item && <ItemStats id={id} />}
-                  </button>
+                  </ButtonNeon>
                 </li>
               );
             })}
           </ul>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

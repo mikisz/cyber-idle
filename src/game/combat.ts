@@ -2,7 +2,7 @@ import { useGameStore } from './state/store';
 import { getEnemyById, type Enemy, getEnemyXp } from '../data/enemies';
 import { getItem } from '../data/items';
 import { getLocation } from '../data/locations';
-import { addItemToInventory } from './items';
+import { grantLoot, rollCredits, rollLoot, type LootEntry } from './loot';
 import { gainSkillXpState } from './skills';
 import { showToast } from '../ui/Toast';
 
@@ -13,27 +13,6 @@ export function calcDamage(atk: number, def: number): number {
 
 function trimLog(log: string[]): string[] {
   return log.slice(-10);
-}
-
-function rollLoot(locationId: string) {
-  const loc = getLocation(locationId);
-  const items: { itemId: string; quantity: number }[] = [];
-  let credits = 0;
-  if (!loc?.lootTable) return { items, credits };
-  for (const drop of loc.lootTable) {
-    if (Math.random() < drop.chance) {
-      const qty =
-        drop.min !== undefined && drop.max !== undefined
-          ? Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
-          : drop.min ?? 1;
-      if (drop.itemId === 'credits') {
-        credits += qty;
-      } else {
-        items.push({ itemId: drop.itemId, quantity: qty });
-      }
-    }
-  }
-  return { items, credits };
 }
 
 export function startCombat(enemyId: string) {
@@ -51,36 +30,50 @@ export function startCombat(enemyId: string) {
 }
 
 function awardVictory(enemy: Enemy, log: string[]) {
-    const state = useGameStore.getState();
-    const { items, credits: lootCredits } = rollLoot(
-      state.exploration.currentLocationId ?? '',
-    );
+  const state = useGameStore.getState();
+  const loc = getLocation(state.exploration.currentLocationId ?? '');
+  const table: LootEntry[] = loc?.lootTable ?? [];
+  const itemTable = table.filter((d) => d.itemId !== 'credits');
+  const creditEntry = table.find((d) => d.itemId === 'credits');
+
+  const drops = rollLoot(itemTable);
   const lootMessages: string[] = [];
-  for (const drop of items) {
-    const item = getItem(drop.itemId);
+
+  const counts: Record<string, number> = {};
+  for (const id of drops) counts[id] = (counts[id] ?? 0) + 1;
+  for (const [itemId, qty] of Object.entries(counts)) {
+    const item = getItem(itemId);
     lootMessages.push(
-      `Looted ${drop.quantity > 1 ? `${drop.quantity}x ` : ''}${item?.name ?? drop.itemId}`,
+      `Looted ${qty > 1 ? `${qty}x ` : ''}${item?.name ?? itemId}`,
     );
   }
-  if (lootCredits > 0) {
-    lootMessages.push(`Looted ${lootCredits} credits`);
+
+  let credits = 0;
+  if (creditEntry && Math.random() < creditEntry.chance) {
+    const c = rollCredits({
+      min: creditEntry.min ?? 0,
+      max: creditEntry.max ?? creditEntry.min ?? 0,
+    });
+    credits += c;
+    lootMessages.push(`Looted ${c} credits`);
   }
+  if (enemy.creditsDrop) {
+    const c = rollCredits(enemy.creditsDrop);
+    credits += c;
+    lootMessages.push(`Looted ${c} credits`);
+  }
+
   const gainedXp = getEnemyXp(enemy);
   let playerLeveled = false;
   useGameStore.setState((s) => {
     const xpRes = gainSkillXpState(s, 'combat', gainedXp);
     playerLeveled = xpRes.playerLeveled;
-    const resources = { ...xpRes.state.resources };
-    resources.credits += lootCredits;
-    if (enemy.creditsDrop) {
-      const { min, max } = enemy.creditsDrop;
-      const credits = Math.floor(Math.random() * (max - min + 1)) + min;
-      resources.credits += credits;
-      lootMessages.push(`Looted ${credits} credits`);
-    }
     return {
       ...xpRes.state,
-      resources,
+      resources: {
+        ...xpRes.state.resources,
+        credits: xpRes.state.resources.credits + credits,
+      },
       combat: {
         enemyId: null,
         enemyHp: 0,
@@ -94,8 +87,8 @@ function awardVictory(enemy: Enemy, log: string[]) {
         lastEvent: {
           type: 'enemy',
           summary: `Defeated ${enemy.name}`,
-          credits: lootCredits,
-          itemId: items[0]?.itemId,
+          credits,
+          itemId: drops[0],
         },
         recentLog: trimLog([
           ...xpRes.state.exploration.recentLog,
@@ -108,9 +101,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
   if (playerLeveled) {
     showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
   }
-  for (const drop of items) {
-    addItemToInventory(drop.itemId, drop.quantity);
-  }
+  grantLoot(drops);
 }
 
 function handleDefeat(enemy: Enemy, log: string[]) {

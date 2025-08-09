@@ -5,6 +5,7 @@ import InventoryTab from './tabs/InventoryTab';
 import UpgradesTab from './tabs/UpgradesTab';
 import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
+import { NeonToast } from './Toast';
 
 type Tab = 'hacking' | 'combat' | 'inventory' | 'upgrades';
 
@@ -34,6 +35,7 @@ export default function AppShell() {
 
   return (
     <div className="flex h-full flex-col bg-background">
+      <NeonToast />
       <header className="flex justify-between p-4 text-neon-cyan">
         <span>Credits: {player.credits}</span>
         <div className="flex items-center gap-2">

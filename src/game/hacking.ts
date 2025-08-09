@@ -1,5 +1,6 @@
 import { GameState } from './state/store';
 import { gainSkillXpState } from './skills';
+import { grantLoot, rollLoot, type LootEntry } from './loot';
 
 export const BASE_HACK_DURATION = 10000; // ms
 
@@ -9,12 +10,10 @@ export interface HackRewards {
   xp: number;
 }
 
-function rollHackingLoot(): string | null {
-  const roll = Math.random();
-  if (roll < 0.01) return 'neural_chip';
-  if (roll < 0.03) return 'shock_baton';
-  return null;
-}
+const HACK_LOOT_TABLE: LootEntry[] = [
+  { itemId: 'neural_chip', chance: 0.01 },
+  { itemId: 'shock_baton', chance: 0.03 },
+];
 
 export function performHack(state: GameState): {
   state: GameState;
@@ -31,12 +30,13 @@ export function performHack(state: GameState): {
   };
   const xpResult = gainSkillXpState(newState, 'hacking', xpGain);
   newState = xpResult.state;
-  const drop = rollHackingLoot();
+  const drops = rollLoot(HACK_LOOT_TABLE);
+  grantLoot(drops);
 
   return {
     state: newState,
     rewards: { credits, data: dataGain, xp: xpGain },
-    loot: drop,
+    loot: drops[0] ?? null,
     playerLeveled: xpResult.playerLeveled,
   };
 }

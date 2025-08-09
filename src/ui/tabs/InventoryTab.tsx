@@ -7,10 +7,9 @@ function ItemStats({ id }: { id: string }) {
   const item = getItem(id);
   if (!item) return null;
   const stats = [] as string[];
-  if (item.stats?.atk) stats.push(`ATK +${item.stats.atk}`);
-  if (item.stats?.hpMax) stats.push(`HP +${item.stats.hpMax}`);
-  if (item.stats?.hackingSpeed)
-    stats.push(`Hack Speed +${Math.round(item.stats.hackingSpeed * 100)}%`);
+  if (item.stats?.attack) stats.push(`ATK +${item.stats.attack}`);
+  if (item.stats?.defense) stats.push(`DEF +${item.stats.defense}`);
+  if (item.stats?.heal) stats.push(`Heal ${item.stats.heal}`);
   return <div className="text-sm text-neon-cyan">{stats.join(', ')}</div>;
 }
 
@@ -23,7 +22,7 @@ export default function InventoryTab() {
     if (!item) return;
     if (item.type === 'consumable') {
       const used = consumeItem(id);
-      if (used && id === 'medkit_small') {
+      if (used && id === 'medkit') {
         showToast('+50 HP (Medkit)');
       }
     } else {
@@ -59,19 +58,22 @@ export default function InventoryTab() {
       </div>
       <div className="space-y-2">
         <div className="font-bold">Inventory</div>
-        {inventory.length === 0 ? (
+        {Object.keys(inventory).length === 0 ? (
           <div>Empty</div>
         ) : (
           <ul className="grid grid-cols-2 gap-2">
-            {inventory.map((id, i) => {
+            {Object.entries(inventory).map(([id, qty]) => {
               const item = getItem(id);
               return (
-                <li key={`${id}-${i}`}>
+                <li key={id}>
                   <button
                     className="w-full border border-neon-cyan p-2 text-left"
                     onClick={() => handleItem(id)}
                   >
-                    <div>{item?.name ?? id}</div>
+                    <div>
+                      {item?.name ?? id}
+                      {qty > 1 && ` x${qty}`}
+                    </div>
                     {item && <ItemStats id={id} />}
                   </button>
                 </li>

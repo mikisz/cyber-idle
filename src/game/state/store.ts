@@ -15,7 +15,7 @@ export interface GameState {
   };
   hacking: { timeMultiplier: number; inProgress: boolean };
   upgrades: { owned: Record<string, boolean> };
-  inventory: string[];
+  inventory: Record<string, number>; // itemId -> quantity
   equipped: {
     weapon: string | null;
     armor: string | null;
@@ -46,7 +46,7 @@ export const initialState: GameState = {
   },
   hacking: { timeMultiplier: 1, inProgress: false },
   upgrades: { owned: {} },
-  inventory: [],
+  inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },
   location: null,
   combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },

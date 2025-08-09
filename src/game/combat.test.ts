@@ -20,6 +20,7 @@ describe('combat system', () => {
     useGameStore.setState(() => ({
       ...initialState,
       player: { ...initialState.player, atk: 100 },
+      location: 'slums',
     }));
 
     startCombat('street_thug');
@@ -28,7 +29,8 @@ describe('combat system', () => {
     const state = useGameStore.getState();
     expect(state.skills.combat.xp).toBe(10);
     expect(state.player.credits).toBe(5);
-    expect(state.inventory).toContain('knife_rusty');
+    expect(state.inventory.scrap_metal).toBe(1);
+    expect(state.inventory.medkit).toBe(1);
 
     rand.mockRestore();
   });

@@ -38,27 +38,27 @@ describe('Upgrades', () => {
     vi.useRealTimers();
   });
 
-  it('buying muscle_fiber_1 increases atk by 1', () => {
+  it('buying tendo_servo_1 increases atk by 2', () => {
     useGameStore.setState((s) => ({
       ...s,
       player: { ...s.player, credits: 200 },
     }));
 
     render(<UpgradesTab />);
-    fireEvent.click(screen.getByTestId('buy-muscle_fiber_1'));
-    expect(useGameStore.getState().player.atk).toBe(6);
+    fireEvent.click(screen.getByTestId('buy-tendo_servo_1'));
+    expect(useGameStore.getState().player.atk).toBe(7);
   });
 
-  it('buying dermal_plating_1 increases hpMax by 10 and heals to full', () => {
+  it('buying subdermal_armor_1 increases hpMax by 15 and heals to full', () => {
     useGameStore.setState((s) => ({
       ...s,
       player: { ...s.player, credits: 200, hp: 10 },
     }));
 
     render(<UpgradesTab />);
-    fireEvent.click(screen.getByTestId('buy-dermal_plating_1'));
+    fireEvent.click(screen.getByTestId('buy-subdermal_armor_1'));
     const state = useGameStore.getState();
-    expect(state.player.hpMax).toBe(60);
-    expect(state.player.hp).toBe(60);
+    expect(state.player.hpMax).toBe(65);
+    expect(state.player.hp).toBe(65);
   });
 });

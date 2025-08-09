@@ -1,42 +1,26 @@
-import { upgrades, type Upgrade } from '../../data/upgrades';
+import { upgrades } from '../../data/upgrades';
 import { useGameStore } from '../../game/state/store';
+import { buyUpgrade } from '../../game/shop';
 import { showToast } from '../Toast';
 
 export default function UpgradesTab() {
   const player = useGameStore((s) => s.player);
   const owned = useGameStore((s) => s.upgrades.owned);
-  const setState = useGameStore.setState;
 
-  const canAfford = (u: Upgrade) => {
-    if (u.costCredits && player.credits < u.costCredits) return false;
-    return true;
+  const canAfford = (cost: number) => player.credits >= cost;
+
+  const buy = (id: string, name: string) => {
+    const success = buyUpgrade(id);
+    if (success) showToast(`Installed: ${name}`);
   };
 
-  const buy = (u: Upgrade) => {
-    setState((state) => {
-      if (state.upgrades.owned[u.id]) return state;
-      if (!canAfford(u)) return state;
-      const newPlayer = { ...state.player };
-      if (u.costCredits) newPlayer.credits -= u.costCredits;
-      if (u.effects.atk) newPlayer.atk += u.effects.atk;
-      if (u.effects.hpMax) {
-        newPlayer.hpMax += u.effects.hpMax;
-        newPlayer.hp = newPlayer.hpMax;
-      }
-      const newHacking = { ...state.hacking };
-      if (u.effects.hackingSpeed) {
-        newHacking.timeMultiplier *= u.effects.hackingSpeed;
-      }
-      return {
-        ...state,
-        player: newPlayer,
-        hacking: newHacking,
-        upgrades: {
-          owned: { ...state.upgrades.owned, [u.id]: true },
-        },
-      };
-    });
-    showToast(`Purchased: ${u.name}`);
+  const effectSummary = (u: typeof upgrades[number]) => {
+    const parts: string[] = [];
+    if (u.effects.hackingSpeed)
+      parts.push(`Hack x${u.effects.hackingSpeed.toFixed(2)}`);
+    if (u.effects.atk) parts.push(`ATK +${u.effects.atk}`);
+    if (u.effects.hpMax) parts.push(`HP +${u.effects.hpMax}`);
+    return parts.join(', ');
   };
 
   return (
@@ -47,18 +31,21 @@ export default function UpgradesTab() {
       <ul className="space-y-2">
         {upgrades.map((u) => {
           const isOwned = owned[u.id];
-          const disabled = isOwned || !canAfford(u);
+          const disabled = isOwned || !canAfford(u.costCredits);
           return (
             <li key={u.id} className="flex items-center justify-between">
               <div>
-                <div>{u.name}</div>
+                <div>
+                  {u.iconText} {u.name}
+                </div>
+                <div className="text-sm text-neon-cyan">{effectSummary(u)}</div>
                 <div className="text-sm text-neon-cyan">
-                  {u.costCredits ? `Credits: ${u.costCredits} ` : ''}
+                  Credits: {u.costCredits}
                 </div>
               </div>
               <button
                 data-testid={`buy-${u.id}`}
-                onClick={() => buy(u)}
+                onClick={() => buy(u.id, u.name)}
                 disabled={disabled}
               >
                 {isOwned ? 'Owned' : 'Buy'}

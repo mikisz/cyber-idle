@@ -2,7 +2,7 @@ export interface Upgrade {
   id: string;
   name: string;
   costCredits: number;
-  effects: { atk?: number; hpMax?: number; hackingSpeed?: number };
+  effects: { hackingSpeed?: number; atk?: number; hpMax?: number };
   description?: string;
   iconText?: string;
 }
@@ -13,24 +13,21 @@ export const upgrades: Upgrade[] = [
     name: 'Neuro Patch I',
     costCredits: 120,
     effects: { hackingSpeed: 1.05 },
-    description: 'Boosts neural signal processing by 5%.',
     iconText: '🧠',
   },
   {
-    id: 'muscle_fiber_1',
-    name: 'Muscle Fiber Mesh',
-    costCredits: 100,
-    effects: { atk: 1 },
-    description: 'Synthetic fibers enhance strength.',
-    iconText: '💪',
+    id: 'tendo_servo_1',
+    name: 'Tendo-Servo I',
+    costCredits: 150,
+    effects: { atk: 2 },
+    iconText: '⚙️',
   },
   {
-    id: 'dermal_plating_1',
-    name: 'Dermal Plating I',
-    costCredits: 80,
-    effects: { hpMax: 10 },
-    description: 'Reinforced skin grafts improve survivability.',
-    iconText: '🛡',
+    id: 'subdermal_armor_1',
+    name: 'Subdermal Armor I',
+    costCredits: 130,
+    effects: { hpMax: 15 },
+    iconText: '🛡️',
   },
 ];
 

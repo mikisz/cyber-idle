@@ -1,14 +1,13 @@
 import { useRef, useState } from 'react';
-import {
-  exportGame,
-  importGame,
-  clearGame,
-} from '../game/save/save';
+import { exportGame, importGame, clearGame } from '../game/save/save';
 import { useGameStore, initialState } from '../game/state/store';
+import Modal from './components/Modal';
+import ButtonNeon from './components/ButtonNeon';
 
 export default function SettingsMenu() {
   const [open, setOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [modal, setModal] = useState<{ message: string; confirm?: () => void } | null>(null);
 
   const handleExport = async () => {
     try {
@@ -20,10 +19,10 @@ export default function SettingsMenu() {
       a.download = 'cyber-idle-save.json';
       a.click();
       URL.revokeObjectURL(url);
-      alert('Export successful');
+      setModal({ message: 'Export successful' });
     } catch (err) {
       console.error(err);
-      alert('Export failed');
+      setModal({ message: 'Export failed' });
     }
   };
 
@@ -38,25 +37,29 @@ export default function SettingsMenu() {
       const text = await file.text();
       const state = await importGame(text);
       useGameStore.setState(state);
-      alert('Import successful');
+      setModal({ message: 'Import successful' });
     } catch (err) {
       console.error(err);
-      alert('Import failed');
+      setModal({ message: 'Import failed' });
     } finally {
       e.target.value = '';
     }
   };
 
   const handleClear = async () => {
-    if (!confirm('Clear saved game?')) return;
-    try {
-      await clearGame();
-      useGameStore.setState(initialState);
-      alert('Save cleared');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to clear save');
-    }
+    setModal({
+      message: 'Clear saved game?',
+      confirm: async () => {
+        try {
+          await clearGame();
+          useGameStore.setState(initialState);
+          setModal({ message: 'Save cleared' });
+        } catch (err) {
+          console.error(err);
+          setModal({ message: 'Failed to clear save' });
+        }
+      },
+    });
   };
 
   return (
@@ -88,6 +91,28 @@ export default function SettingsMenu() {
         className="hidden"
         onChange={onFileChange}
       />
+      <Modal
+        open={modal !== null}
+        onClose={() => setModal(null)}
+        actions={
+          modal?.confirm && (
+            <>
+              <ButtonNeon
+                variant="danger"
+                onClick={() => {
+                  modal.confirm?.();
+                  setModal(null);
+                }}
+              >
+                Confirm
+              </ButtonNeon>
+              <ButtonNeon onClick={() => setModal(null)}>Cancel</ButtonNeon>
+            </>
+          )
+        }
+      >
+        {modal?.message}
+      </Modal>
     </div>
   );
 }

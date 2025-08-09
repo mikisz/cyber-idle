@@ -19,14 +19,14 @@ export type Tab =
   | 'character'
   | 'exploration';
 
-const tabs: { key: Tab; label: string }[] = [
-  { key: 'character', label: 'Character' },
-  { key: 'hacking', label: 'Hacking' },
-  { key: 'exploration', label: 'Exploration' },
-  { key: 'combat', label: 'Combat' },
-  { key: 'inventory', label: 'Inventory' },
-  { key: 'store', label: 'Store' },
-  { key: 'upgrades', label: 'Upgrades' },
+const tabs: { key: Tab; label: string; icon: string }[] = [
+  { key: 'character', label: 'Character', icon: '👤' },
+  { key: 'hacking', label: 'Hacking', icon: '💻' },
+  { key: 'exploration', label: 'Exploration', icon: '🧭' },
+  { key: 'combat', label: 'Combat', icon: '⚔️' },
+  { key: 'inventory', label: 'Inventory', icon: '🎒' },
+  { key: 'store', label: 'Store', icon: '🏪' },
+  { key: 'upgrades', label: 'Upgrades', icon: '🛠' },
 ];
 
 export default function AppShell() {
@@ -54,7 +54,7 @@ export default function AppShell() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-surface">
       <NeonToast />
       <header className="flex justify-between p-4 text-neon-cyan">
         <span>Credits: {resources.credits}</span>
@@ -72,14 +72,16 @@ export default function AppShell() {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            className={`flex-1 p-2 ${
+            aria-label={tab.label}
+            className={`flex flex-1 items-center justify-center gap-1 p-2 ${
               current === tab.key
                 ? 'text-neon-magenta drop-shadow-[0_0_6px_#ff00ff]'
                 : 'text-neon-cyan'
             }`}
             onClick={() => setCurrent(tab.key)}
           >
-            {tab.label}
+            <span>{tab.icon}</span>
+            {current === tab.key && <span>{tab.label}</span>}
           </button>
         ))}
       </nav>

@@ -2,6 +2,9 @@ import { useGameStore } from '../../game/state/store';
 import { getItem } from '../../data/items';
 import { getUpgrade } from '../../data/upgrades';
 import { getNextLevelXp } from '../../game/skills';
+import Card from '../components/Card';
+import SectionHeader from '../components/SectionHeader';
+import ProgressBarNeon from '../components/ProgressBarNeon';
 
 export default function CharacterTab() {
   const resources = useGameStore((s) => s.resources);
@@ -46,35 +49,33 @@ export default function CharacterTab() {
       <div>
         {name}: Level {data.level} ({data.xp}/{next})
       </div>
-      <div className="h-2 w-full bg-gray-800">
-        <div
-          className="h-full bg-neon-magenta"
-          style={{ width: `${(data.xp / next) * 100}%` }}
-        />
-      </div>
+      <ProgressBarNeon
+        percentage={(data.xp / next) * 100}
+        color="magenta"
+      />
     </div>
   );
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="border border-neon-cyan p-2">
-        <div className="font-bold">Summary</div>
+    <Card className="space-y-4 p-4">
+      <div>
+        <SectionHeader>Summary</SectionHeader>
         <div>Credits: {resources.credits}</div>
         <div>Data: {resources.data}</div>
       </div>
-      <div className="border border-neon-cyan p-2">
-        <div className="font-bold">Core Stats</div>
+      <div>
+        <SectionHeader>Core Stats</SectionHeader>
         <div>HP: {player.hp}/{player.hpMax}</div>
         <div>ATK: {player.atk}</div>
         <div>DEF: {player.def}</div>
       </div>
-      <div className="border border-neon-cyan p-2 space-y-2">
-        <div className="font-bold">Skills</div>
+      <div className="space-y-2">
+        <SectionHeader>Skills</SectionHeader>
         {renderSkill('Hacking', skills.hacking, hackingNext)}
         {renderSkill('Combat', skills.combat, combatNext)}
       </div>
-      <div className="border border-neon-cyan p-2">
-        <div className="font-bold">Effects</div>
+      <div>
+        <SectionHeader>Effects</SectionHeader>
         {effects.length === 0 ? (
           <div>None</div>
         ) : (
@@ -85,6 +86,6 @@ export default function CharacterTab() {
           </ul>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { attack, flee, quickHeal, startCombat } from '../../game/combat';
 import { enemies, getEnemyById } from '../../data/enemies';
 import { useGameStore } from '../../game/state/store';
 import type { Tab } from '../AppShell';
+import Card from '../components/Card';
+import ButtonNeon from '../components/ButtonNeon';
+import ProgressBarNeon from '../components/ProgressBarNeon';
+import SectionHeader from '../components/SectionHeader';
+import Modal from '../components/Modal';
 
 interface Props {
   onNavigate?: (tab: Tab) => void;
@@ -12,11 +17,22 @@ export default function CombatTab({ onNavigate }: Props) {
   const combat = useGameStore((s) => s.combat);
   const player = useGameStore((s) => s.player);
   const [selected, setSelected] = useState(enemies[0]?.id ?? '');
+  const [result, setResult] = useState<string | null>(null);
 
   const enemy = combat.enemyId ? getEnemyById(combat.enemyId) : null;
 
+  useEffect(() => {
+    if (!combat.inFight && combat.log.length > 0) {
+      const last = combat.log[combat.log.length - 1];
+      if (last.includes('Defeated') || last.includes('defeated')) {
+        setResult(last);
+      }
+    }
+  }, [combat.inFight, combat.log]);
+
   return (
-    <div className="space-y-4 p-4">
+    <Card className="space-y-4 p-4">
+      <SectionHeader>Combat</SectionHeader>
       {!combat.inFight ? (
         <div className="space-y-4">
           <div>
@@ -32,12 +48,12 @@ export default function CombatTab({ onNavigate }: Props) {
               ))}
             </select>
           </div>
-          <button onClick={() => startCombat(selected)} disabled={!selected}>
+          <ButtonNeon onClick={() => startCombat(selected)} disabled={!selected}>
             Engage
-          </button>
-          <button onClick={quickHeal}>Quick Heal</button>
+          </ButtonNeon>
+          <ButtonNeon onClick={quickHeal}>Quick Heal</ButtonNeon>
           {combat.fromExploration && (
-            <button
+            <ButtonNeon
               onClick={() => {
                 useGameStore.setState((s) => ({
                   ...s,
@@ -47,16 +63,25 @@ export default function CombatTab({ onNavigate }: Props) {
               }}
             >
               Continue Exploring
-            </button>
+            </ButtonNeon>
           )}
         </div>
       ) : (
         <div className="space-y-4">
           <div>
             Player HP: {player.hp} / {player.hpMax}
+            <ProgressBarNeon
+              percentage={(player.hp / player.hpMax) * 100}
+              className="mt-1"
+            />
           </div>
           <div>
             {enemy?.name} HP: {combat.enemyHp} / {enemy?.hp}
+            <ProgressBarNeon
+              percentage={enemy ? (combat.enemyHp / enemy.hp) * 100 : 0}
+              color="magenta"
+              className="mt-1"
+            />
           </div>
           <div className="space-y-1">
             {combat.log.map((l, i) => (
@@ -64,12 +89,15 @@ export default function CombatTab({ onNavigate }: Props) {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={attack}>Attack</button>
-            <button onClick={flee}>Flee</button>
-            <button onClick={quickHeal}>Quick Heal</button>
+            <ButtonNeon onClick={attack}>Attack</ButtonNeon>
+            <ButtonNeon onClick={flee}>Flee</ButtonNeon>
+            <ButtonNeon onClick={quickHeal}>Quick Heal</ButtonNeon>
           </div>
         </div>
       )}
-    </div>
+      <Modal open={!!result} onClose={() => setResult(null)}>
+        {result}
+      </Modal>
+    </Card>
   );
 }

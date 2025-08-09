@@ -7,6 +7,6 @@ describe('AppShell', () => {
     expect(screen.getByText('Credits: 0')).toBeInTheDocument();
     expect(screen.getByTestId('tab-content')).toHaveTextContent('Start hack');
     fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
-    expect(screen.getByTestId('tab-content')).toHaveTextContent('Combat');
+    expect(screen.getByRole('button', { name: 'Engage' })).toBeInTheDocument();
   });
 });

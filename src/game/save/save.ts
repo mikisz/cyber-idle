@@ -38,7 +38,7 @@ export async function saveGame(state: GameState): Promise<GameState> {
   const db = await openDatabase();
   const withTimestamp: GameState = {
     ...state,
-    meta: { ...state.meta, lastSavedAt: Date.now() },
+    meta: { ...state.meta, lastSaveTimestamp: Date.now() },
   };
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');

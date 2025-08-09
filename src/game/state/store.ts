@@ -13,7 +13,7 @@ export interface GameState {
     hacking: { level: number; xp: number };
     combat: { level: number; xp: number };
   };
-  hacking: { timeMultiplier: number };
+  hacking: { timeMultiplier: number; inProgress: boolean };
   upgrades: { owned: Record<string, boolean> };
   inventory: { [itemId: string]: number };
   combat: {
@@ -22,7 +22,7 @@ export interface GameState {
     inFight: boolean;
     log: string[];
   };
-  meta: { lastSavedAt: number | null };
+  meta: { lastSaveTimestamp: number | null };
 }
 
 export const initialState: GameState = {
@@ -38,11 +38,11 @@ export const initialState: GameState = {
     hacking: { level: 1, xp: 0 },
     combat: { level: 1, xp: 0 },
   },
-  hacking: { timeMultiplier: 1 },
+  hacking: { timeMultiplier: 1, inProgress: false },
   upgrades: { owned: {} },
   inventory: {},
   combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
-  meta: { lastSavedAt: null },
+  meta: { lastSaveTimestamp: null },
 };
 
 export const useGameStore = create<GameState>(() => initialState);

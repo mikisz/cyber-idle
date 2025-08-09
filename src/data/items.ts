@@ -3,10 +3,11 @@ export type Item = {
   name: string;
   type: 'consumable' | 'weapon' | 'armor' | 'accessory' | 'misc';
   description?: string;
-  stats?: { attack?: number; defense?: number };
+  stats?: { attack?: number; defense?: number; hackingSpeed?: number };
   effect?: { heal?: number };
   buyPriceCredits?: number;
   source?: 'shop-only' | 'loot-only' | 'both';
+  rarity?: 'common' | 'uncommon' | 'rare';
   iconText?: string;
 };
 
@@ -66,6 +67,24 @@ export const items: Item[] = [
     stats: { attack: 15 },
     buyPriceCredits: 200,
     source: 'loot-only',
+  },
+  {
+    id: 'neural_chip',
+    name: 'Neural Chip',
+    type: 'accessory',
+    source: 'loot-only',
+    stats: { hackingSpeed: 1.05 },
+    rarity: 'rare',
+    iconText: '🔩',
+  },
+  {
+    id: 'shock_baton',
+    name: 'Shock Baton',
+    type: 'weapon',
+    source: 'loot-only',
+    stats: { attack: 3 },
+    rarity: 'uncommon',
+    iconText: '🗡',
   },
 ];
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import HackingTab from './tabs/HackingTab';
 import CombatTab from './tabs/CombatTab';
+import ExplorationTab from './tabs/ExplorationTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
 import UpgradesTab from './tabs/UpgradesTab';
@@ -9,11 +10,19 @@ import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
 import { NeonToast } from './Toast';
 
-type Tab = 'hacking' | 'combat' | 'inventory' | 'store' | 'upgrades' | 'character';
+export type Tab =
+  | 'hacking'
+  | 'combat'
+  | 'inventory'
+  | 'store'
+  | 'upgrades'
+  | 'character'
+  | 'exploration';
 
 const tabs: { key: Tab; label: string }[] = [
   { key: 'character', label: 'Character' },
   { key: 'hacking', label: 'Hacking' },
+  { key: 'exploration', label: 'Exploration' },
   { key: 'combat', label: 'Combat' },
   { key: 'inventory', label: 'Inventory' },
   { key: 'store', label: 'Store' },
@@ -30,7 +39,9 @@ export default function AppShell() {
       case 'character':
         return <CharacterTab />;
       case 'combat':
-        return <CombatTab />;
+        return <CombatTab onNavigate={setCurrent} />;
+      case 'exploration':
+        return <ExplorationTab onNavigate={setCurrent} />;
       case 'inventory':
         return <InventoryTab />;
       case 'store':

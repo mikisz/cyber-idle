@@ -2,8 +2,13 @@ import { useState } from 'react';
 import { attack, flee, quickHeal, startCombat } from '../../game/combat';
 import { enemies, getEnemyById } from '../../data/enemies';
 import { useGameStore } from '../../game/state/store';
+import type { Tab } from '../AppShell';
 
-export default function CombatTab() {
+interface Props {
+  onNavigate?: (tab: Tab) => void;
+}
+
+export default function CombatTab({ onNavigate }: Props) {
   const combat = useGameStore((s) => s.combat);
   const player = useGameStore((s) => s.player);
   const [selected, setSelected] = useState(enemies[0]?.id ?? '');
@@ -31,6 +36,19 @@ export default function CombatTab() {
             Engage
           </button>
           <button onClick={quickHeal}>Quick Heal</button>
+          {combat.fromExploration && (
+            <button
+              onClick={() => {
+                useGameStore.setState((s) => ({
+                  ...s,
+                  combat: { ...s.combat, fromExploration: false },
+                }));
+                onNavigate?.('exploration');
+              }}
+            >
+              Continue Exploring
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">

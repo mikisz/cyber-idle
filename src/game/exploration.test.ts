@@ -9,7 +9,7 @@ describe('exploration', () => {
   });
 
   it('triggers enemy encounter', () => {
-    const rand = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const rand = vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const result = explore();
     const state = useGameStore.getState();
     expect(result?.type).toBe('enemy');
@@ -21,13 +21,15 @@ describe('exploration', () => {
     setLocation('slums');
     const rand = vi
       .spyOn(Math, 'random')
-      .mockReturnValueOnce(0.99) // enemy roll -> loot path
+      .mockReturnValueOnce(0) // encounter roll -> loot path
       .mockReturnValueOnce(0) // scrap metal success
       .mockReturnValue(1); // fail remaining drops
     const result = explore();
     expect(result?.type).toBe('loot');
+    expect(result?.itemId).toBe('scrap_metal');
+    expect(result?.quantity).toBe(1);
     const state = useGameStore.getState();
-    expect(state.inventory.scrap_metal).toBe(1);
+    expect(state.inventory.scrap_metal).toBeUndefined();
     rand.mockRestore();
   });
 });

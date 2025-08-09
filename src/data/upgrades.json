@@ -1,0 +1,5 @@
+[
+  { "id":"hack_speed_1","name":"+5% Hacking Speed","costCredits":50,"costData":10,"effects":{"hackingSpeed":1.05} },
+  { "id":"atk_1","name":"+1 Attack","costCredits":60,"effects":{"atk":1} },
+  { "id":"hp_1","name":"+10 Max HP","costCredits":40,"effects":{"hpMax":10} }
+]

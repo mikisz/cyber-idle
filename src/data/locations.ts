@@ -1,30 +1,22 @@
-export interface LocationLoot {
-  itemId: string;
-  chance: number;
-}
-
 export interface Location {
   id: string;
   name: string;
   enemies: string[]; // enemy IDs
-  loot?: LocationLoot[];
   description?: string;
 }
 
 export const locations: Location[] = [
   {
-    id: 'dark_alley',
-    name: 'Dark Alley',
+    id: 'slums',
+    name: 'Slums',
     enemies: ['street_thug'],
-    loot: [{ itemId: 'medkit_small', chance: 0.01 }],
-    description: 'A shadowy alley where muggers lurk.',
+    description: 'A rundown part of the city where anything can happen.',
   },
   {
-    id: 'abandoned_warehouse',
-    name: 'Abandoned Warehouse',
+    id: 'corporate_district',
+    name: 'Corporate District',
     enemies: ['street_thug', 'cyber_rat'],
-    loot: [{ itemId: 'knife_rusty', chance: 0.05 }],
-    description: 'Dusty building with hidden corners.',
+    description: 'Guarded streets of the wealthy elite.',
   },
 ];
 

@@ -31,10 +31,10 @@ export function performHack(state: GameState): {
     level += 1;
   }
 
-  const inv = [...state.inventory];
+  const inv = { ...state.inventory };
   const drop = rollHackingLoot();
   if (drop) {
-    inv.push(drop);
+    inv[drop] = (inv[drop] ?? 0) + 1;
   }
 
   const newState: GameState = {

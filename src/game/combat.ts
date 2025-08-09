@@ -1,6 +1,8 @@
 import { useGameStore } from './state/store';
 import { getEnemyById, type Enemy } from '../data/enemies';
 import { getItem } from '../data/items';
+import { rollLoot } from '../data/lootTables';
+import { addItemToInventory } from './items';
 
 export function calcDamage(atk: number, def: number): number {
   const variance = Math.floor(Math.random() * 3) - 1; // -1,0,1
@@ -25,46 +27,49 @@ export function startCombat(enemyId: string) {
   }));
 }
 
-function rollLoot(enemy: Enemy): string[] {
-  const drops: string[] = [];
-  for (const entry of enemy.possibleDrops) {
-    if (Math.random() < entry.chance) {
-      drops.push(entry.itemId);
-    }
-  }
-  return drops;
-}
-
 function awardVictory(enemy: Enemy, log: string[]) {
-  useGameStore.setState((state) => {
-    const drops = rollLoot(enemy);
-    const inventory = [...state.inventory, ...drops];
-    const player = { ...state.player };
-    for (const itemId of drops) {
-      const item = getItem(itemId);
-      log.push(`Looted ${item?.name ?? itemId}`);
-    }
+  const state = useGameStore.getState();
+  const { items, credits: lootCredits } = rollLoot(state.location ?? '');
+  const lootMessages: string[] = [];
+  for (const drop of items) {
+    const item = getItem(drop.itemId);
+    lootMessages.push(
+      `Looted ${drop.quantity > 1 ? `${drop.quantity}x ` : ''}${item?.name ?? drop.itemId}`,
+    );
+  }
+  if (lootCredits > 0) {
+    lootMessages.push(`Looted ${lootCredits} credits`);
+  }
+  useGameStore.setState((s) => {
+    const player = { ...s.player };
+    player.credits += lootCredits;
     if (enemy.creditsDrop) {
       const { min, max } = enemy.creditsDrop;
       const credits = Math.floor(Math.random() * (max - min + 1)) + min;
       player.credits += credits;
-      log.push(`Looted ${credits} credits`);
+      lootMessages.push(`Looted ${credits} credits`);
     }
-    let { level, xp } = state.skills.combat;
+    let { level, xp } = s.skills.combat;
     xp += 10; // placeholder xp per victory
     while (xp >= level * 100) {
       xp -= level * 100;
       level += 1;
     }
-    log.push(`Defeated ${enemy.name}`);
     return {
-      ...state,
+      ...s,
       player,
-      inventory,
-      skills: { ...state.skills, combat: { level, xp } },
-      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(log) },
+      skills: { ...s.skills, combat: { level, xp } },
+      combat: {
+        enemyId: null,
+        enemyHp: 0,
+        inFight: false,
+        log: trimLog([...log, ...lootMessages, `Defeated ${enemy.name}`]),
+      },
     };
   });
+  for (const drop of items) {
+    addItemToInventory(drop.itemId, drop.quantity);
+  }
 }
 
 function handleDefeat(log: string[]) {

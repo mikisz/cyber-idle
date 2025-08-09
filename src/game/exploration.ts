@@ -2,6 +2,7 @@ import { useGameStore } from './state/store';
 import { getLocation } from '../data/locations';
 import { startCombat } from './combat';
 import { addItemToInventory } from './items';
+import { rollLoot } from '../data/lootTables';
 
 export function setLocation(locationId: string) {
   useGameStore.setState((s) => ({ ...s, location: locationId }));
@@ -18,13 +19,18 @@ export function explore() {
     startCombat(enemyId);
     return { type: 'enemy', enemyId } as const;
   }
-  if (loc.loot) {
-    for (const entry of loc.loot) {
-      if (Math.random() < entry.chance) {
-        addItemToInventory(entry.itemId);
-        return { type: 'loot', itemId: entry.itemId } as const;
-      }
-    }
+  const loot = rollLoot(loc.id);
+  if (loot.items.length > 0) {
+    const drop = loot.items[0];
+    addItemToInventory(drop.itemId, drop.quantity);
+    return { type: 'loot', itemId: drop.itemId } as const;
+  }
+  if (loot.credits > 0) {
+    useGameStore.setState((s) => ({
+      ...s,
+      player: { ...s.player, credits: s.player.credits + loot.credits },
+    }));
+    return { type: 'credits', amount: loot.credits } as const;
   }
   return { type: 'nothing' } as const;
 }

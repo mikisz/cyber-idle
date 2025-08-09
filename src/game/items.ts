@@ -1,63 +1,47 @@
 import { useGameStore, type GameState } from './state/store';
 import { getItem, type Item } from '../data/items';
 
-function applyItem(
-  player: GameState['player'],
-  hacking: GameState['hacking'],
-  item: Item,
-  op: 1 | -1
-) {
+function applyItem(player: GameState['player'], item: Item, op: 1 | -1) {
   const newPlayer = { ...player };
-  const newHacking = { ...hacking };
-  if (item.stats?.atk) newPlayer.atk += op * item.stats.atk;
-  if (item.stats?.hpMax) {
-    newPlayer.hpMax += op * item.stats.hpMax;
-    if (op > 0) {
-      newPlayer.hp = Math.min(newPlayer.hp + item.stats.hpMax, newPlayer.hpMax);
-    } else {
-      newPlayer.hp = Math.min(newPlayer.hp, newPlayer.hpMax);
-    }
-  }
-  if (item.stats?.hackingSpeed) {
-    const mult = 1 + item.stats.hackingSpeed;
-    newHacking.timeMultiplier =
-      op > 0 ? newHacking.timeMultiplier * mult : newHacking.timeMultiplier / mult;
-  }
-  return { player: newPlayer, hacking: newHacking };
+  if (item.stats?.attack) newPlayer.atk += op * item.stats.attack;
+  if (item.stats?.defense) newPlayer.def += op * item.stats.defense;
+  return newPlayer;
 }
 
-export function addItemToInventory(itemId: string) {
+export function addItemToInventory(itemId: string, quantity = 1) {
   const item = getItem(itemId);
   if (!item) return;
-  useGameStore.setState((s) => ({ ...s, inventory: [...s.inventory, itemId] }));
+  useGameStore.setState((s) => ({
+    ...s,
+    inventory: {
+      ...s.inventory,
+      [itemId]: (s.inventory[itemId] ?? 0) + quantity,
+    },
+  }));
 }
 
 export function equipItem(itemId: string) {
   const item = getItem(itemId);
-  if (!item || item.type === 'consumable') return;
+  if (!item || item.type === 'consumable' || item.type === 'quest' || item.type === 'misc')
+    return;
   useGameStore.setState((state) => {
-    const inv = [...state.inventory];
-    const idx = inv.indexOf(itemId);
-    if (idx === -1) return state;
-    inv.splice(idx, 1);
-    const slot = item.type;
+    const count = state.inventory[itemId] ?? 0;
+    if (count <= 0) return state;
+    const slot = item.type as 'weapon' | 'armor';
+    const newInventory = { ...state.inventory, [itemId]: count - 1 };
+    if (newInventory[itemId] <= 0) delete newInventory[itemId];
     const newEquipped = { ...state.equipped };
-    let { player, hacking } = state;
+    let player = { ...state.player };
     if (newEquipped[slot]) {
       const prevItem = getItem(newEquipped[slot]!);
       if (prevItem) {
-        const res = applyItem(player, hacking, prevItem, -1);
-        player = res.player;
-        hacking = res.hacking;
-        inv.push(prevItem.id);
+        player = applyItem(player, prevItem, -1);
+        newInventory[prevItem.id] = (newInventory[prevItem.id] ?? 0) + 1;
       }
     }
     newEquipped[slot] = itemId;
-    const res2 = applyItem(player, hacking, item, 1);
-    player = res2.player;
-    hacking = res2.hacking;
-    if (player.hp > player.hpMax) player.hp = player.hpMax;
-    return { ...state, inventory: inv, equipped: newEquipped, player, hacking };
+    player = applyItem(player, item, 1);
+    return { ...state, inventory: newInventory, equipped: newEquipped, player };
   });
 }
 
@@ -66,16 +50,16 @@ export function unequipItem(slot: 'weapon' | 'armor' | 'accessory') {
     const itemId = state.equipped[slot];
     if (!itemId) return state;
     const item = getItem(itemId);
-    const inv = [...state.inventory, itemId];
+    const newInventory = {
+      ...state.inventory,
+      [itemId]: (state.inventory[itemId] ?? 0) + 1,
+    };
     const newEquipped = { ...state.equipped, [slot]: null };
-    let { player, hacking } = state;
+    let player = { ...state.player };
     if (item) {
-      const res = applyItem(player, hacking, item, -1);
-      player = res.player;
-      hacking = res.hacking;
-      if (player.hp > player.hpMax) player.hp = player.hpMax;
+      player = applyItem(player, item, -1);
     }
-    return { ...state, inventory: inv, equipped: newEquipped, player, hacking };
+    return { ...state, inventory: newInventory, equipped: newEquipped, player };
   });
 }
 
@@ -84,16 +68,17 @@ export function consumeItem(itemId: string): boolean {
   if (!item || item.type !== 'consumable') return false;
   let used = false;
   useGameStore.setState((state) => {
-    const idx = state.inventory.indexOf(itemId);
-    if (idx === -1) return state;
-    const inv = [...state.inventory];
-    inv.splice(idx, 1);
+    const count = state.inventory[itemId] ?? 0;
+    if (count <= 0) return state;
+    const newInventory = { ...state.inventory, [itemId]: count - 1 };
+    if (newInventory[itemId] <= 0) delete newInventory[itemId];
     const newPlayer = { ...state.player };
-    if (item.effect?.heal) {
-      newPlayer.hp = Math.min(newPlayer.hp + item.effect.heal, newPlayer.hpMax);
+    if (item.stats?.heal) {
+      newPlayer.hp = Math.min(newPlayer.hp + item.stats.heal, newPlayer.hpMax);
     }
     used = true;
-    return { ...state, inventory: inv, player: newPlayer };
+    return { ...state, inventory: newInventory, player: newPlayer };
   });
   return used;
 }
+

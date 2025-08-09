@@ -1,6 +1,0 @@
-[
-  { "id":"thug","name":"Alley Thug","level":1,"hp":25,"atk":4,"def":1,"xp":12,
-    "loot":[{"credits":true,"min":3,"max":8},{"itemId":"scrap","chance":0.6,"min":1,"max":2}] },
-  { "id":"drone","name":"Corp Drone","level":2,"hp":35,"atk":6,"def":2,"xp":18,
-    "loot":[{"credits":true,"min":6,"max":14},{"itemId":"microchip","chance":0.5,"min":1,"max":1}] }
-]

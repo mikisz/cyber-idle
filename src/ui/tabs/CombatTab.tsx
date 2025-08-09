@@ -1,12 +1,6 @@
 import { useState } from 'react';
-import {
-  attack,
-  flee,
-  quickHeal,
-  startCombat,
-  enemies,
-  getEnemy,
-} from '../../game/combat';
+import { attack, flee, quickHeal, startCombat, getEnemy } from '../../game/combat';
+import { enemies } from '../../data/enemies';
 import { useGameStore } from '../../game/state/store';
 
 export default function CombatTab() {

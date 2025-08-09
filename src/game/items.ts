@@ -29,7 +29,14 @@ function applyItem(
 export function addItemToInventory(itemId: string) {
   const item = getItem(itemId);
   if (!item) return;
-  useGameStore.setState((s) => ({ ...s, inventory: [...s.inventory, itemId] }));
+  if (item.type === 'currency') {
+    useGameStore.setState((s) => ({
+      ...s,
+      player: { ...s.player, credits: s.player.credits + (item.value ?? 0) },
+    }));
+  } else {
+    useGameStore.setState((s) => ({ ...s, inventory: [...s.inventory, itemId] }));
+  }
 }
 
 export function equipItem(itemId: string) {
@@ -89,8 +96,8 @@ export function consumeItem(itemId: string): boolean {
     const inv = [...state.inventory];
     inv.splice(idx, 1);
     const newPlayer = { ...state.player };
-    if (itemId === 'medkit') {
-      newPlayer.hp = Math.min(newPlayer.hp + 50, newPlayer.hpMax);
+    if (item.effect?.hp) {
+      newPlayer.hp = Math.min(newPlayer.hp + item.effect.hp, newPlayer.hpMax);
     }
     used = true;
     return { ...state, inventory: inv, player: newPlayer };

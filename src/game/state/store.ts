@@ -21,6 +21,7 @@ export interface GameState {
     armor: string | null;
     accessory: string | null;
   };
+  location: string | null;
   combat: {
     enemyId: string | null;
     enemyHp: number;
@@ -47,6 +48,7 @@ export const initialState: GameState = {
   upgrades: { owned: {} },
   inventory: [],
   equipped: { weapon: null, armor: null, accessory: null },
+  location: null,
   combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
   meta: { lastSaveTimestamp: null },
 };

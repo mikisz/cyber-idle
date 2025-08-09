@@ -1,21 +1,9 @@
 import { useGameStore } from './state/store';
-import enemiesData from '../data/enemies.json';
+import { getEnemy, type Enemy } from '../data/enemies';
 import { getItem } from '../data/items';
 
-export type Enemy = (typeof enemiesData)[number];
-
-export const enemies: Enemy[] = enemiesData;
-
-export function getEnemy(id: string): Enemy | undefined {
-  return enemies.find((e) => e.id === id);
-}
-
-function randRange(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 export function calcDamage(atk: number, def: number): number {
-  const variance = randRange(-1, 1);
+  const variance = Math.floor(Math.random() * 3) - 1; // -1,0,1
   return Math.max(1, atk + variance - def);
 }
 
@@ -37,66 +25,56 @@ export function startCombat(enemyId: string) {
   }));
 }
 
-function rollLoot(enemy: Enemy) {
-  let credits = 0;
-  const items: Record<string, number> = {};
-  for (const entry of enemy.loot) {
-    if (entry.credits) {
-      credits += randRange(entry.min, entry.max);
-    } else if (entry.itemId) {
-      if (Math.random() < (entry.chance ?? 1)) {
-        const qty = randRange(entry.min, entry.max);
-        items[entry.itemId] = (items[entry.itemId] ?? 0) + qty;
-      }
+function rollLoot(enemy: Enemy): string[] {
+  const drops: string[] = [];
+  for (const entry of enemy.dropTable) {
+    if (Math.random() < entry.dropChance) {
+      drops.push(entry.itemId);
     }
   }
-  return { credits, items };
-}
-
-function rollCombatLoot(): string | null {
-  const roll = Math.random();
-  if (roll < 0.2) return 'medkit';
-  if (roll < 0.5) return 'shock_baton';
-  if (roll < 0.6) return 'kevlar_jacket';
-  return null;
+  return drops;
 }
 
 function awardVictory(enemy: Enemy, log: string[]) {
   useGameStore.setState((state) => {
-    const rewards = rollLoot(enemy);
-    const inv = [...state.inventory];
-    for (const [itemId, qty] of Object.entries(rewards.items)) {
-      for (let i = 0; i < qty; i++) {
-        inv.push(itemId);
+    const drops = rollLoot(enemy);
+    const inventory = [...state.inventory];
+    const player = { ...state.player };
+    for (const itemId of drops) {
+      const item = getItem(itemId);
+      if (item?.type === 'currency') {
+        player.credits += item.value ?? 0;
+      } else {
+        inventory.push(itemId);
       }
-      log.push(`Looted ${qty} ${itemId}`);
-    }
-    const drop = rollCombatLoot();
-    if (drop) {
-      inv.push(drop);
-      const item = getItem(drop);
-      log.push(`Found ${item?.name ?? drop}`);
+      log.push(`Looted ${item?.name ?? itemId}`);
     }
     let { level, xp } = state.skills.combat;
-    xp += enemy.xp;
+    xp += 10; // placeholder xp per victory
     while (xp >= level * 100) {
       xp -= level * 100;
       level += 1;
     }
-    const newPlayer = {
-      ...state.player,
-      credits: state.player.credits + rewards.credits,
-    };
-    if (rewards.credits > 0) {
-      log.push(`Gained ${rewards.credits} credits`);
-    }
     log.push(`Defeated ${enemy.name}`);
     return {
       ...state,
-      player: newPlayer,
+      player,
+      inventory,
       skills: { ...state.skills, combat: { level, xp } },
-      inventory: inv,
       combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(log) },
+    };
+  });
+}
+
+function handleDefeat(log: string[]) {
+  useGameStore.setState((s) => {
+    const lost = Math.floor(s.player.credits * 0.1);
+    const newLog = [...log, `You were defeated and lost ${lost} credits`];
+    return {
+      ...s,
+      player: { ...s.player, hp: s.player.hpMax, credits: s.player.credits - lost },
+      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(newLog) },
+      location: null,
     };
   });
 }
@@ -109,7 +87,7 @@ export function attack() {
   let enemyHp = state.combat.enemyHp;
   const log = [...state.combat.log];
 
-  const dmgToEnemy = calcDamage(state.player.atk, enemy.def);
+  const dmgToEnemy = calcDamage(state.player.atk, 0);
   enemyHp -= dmgToEnemy;
   log.push(`You hit ${enemy.name} for ${dmgToEnemy}`);
 
@@ -123,12 +101,7 @@ export function attack() {
   log.push(`${enemy.name} hits you for ${dmgToPlayer}`);
 
   if (playerHp <= 0) {
-    log.push('You were defeated');
-    useGameStore.setState((s) => ({
-      ...s,
-      player: { ...s.player, hp: 1 },
-      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(log) },
-    }));
+    handleDefeat(log);
     return;
   }
 
@@ -140,14 +113,31 @@ export function attack() {
 }
 
 export function flee() {
+  const state = useGameStore.getState();
+  if (!state.combat.inFight || !state.combat.enemyId) return;
+  const enemy = getEnemy(state.combat.enemyId);
+  if (!enemy) return;
+  const log = [...state.combat.log];
+  if (Math.random() < 0.75) {
+    log.push('You fled the battle');
+    useGameStore.setState((s) => ({
+      ...s,
+      combat: { enemyId: null, enemyHp: 0, inFight: false, log: trimLog(log) },
+    }));
+    return;
+  }
+  log.push('Failed to flee');
+  const dmg = calcDamage(enemy.atk, state.player.def);
+  const hp = state.player.hp - dmg;
+  log.push(`${enemy.name} hits you for ${dmg}`);
+  if (hp <= 0) {
+    handleDefeat(log);
+    return;
+  }
   useGameStore.setState((s) => ({
     ...s,
-    combat: {
-      enemyId: null,
-      enemyHp: 0,
-      inFight: false,
-      log: trimLog([...s.combat.log, 'Fled from battle']),
-    },
+    player: { ...s.player, hp },
+    combat: { ...s.combat, log: trimLog(log) },
   }));
 }
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-
-const BASE_HACK_DURATION = 10000; // ms
+import { BASE_HACK_DURATION, performHack } from '../../game/hacking';
 
 export default function HackingTab() {
   const hacking = useGameStore((s) => s.skills.hacking);
@@ -24,28 +23,9 @@ export default function HackingTab() {
       if (elapsed >= duration) {
         clearInterval(interval);
 
-        const rewardCredits = 50 + Math.floor(Math.random() * 101); // 50-150
-        const rewardXp = 5 + Math.floor(Math.random() * 11); // 5-15
-
         setState((state) => {
-          let { level, xp } = state.skills.hacking;
-          xp += rewardXp;
-          while (xp >= level * 100) {
-            xp -= level * 100;
-            level += 1;
-          }
-
-          return {
-            ...state,
-            player: {
-              ...state.player,
-              credits: state.player.credits + rewardCredits,
-            },
-            skills: {
-              ...state.skills,
-              hacking: { level, xp },
-            },
-          };
+          const { state: updated } = performHack(state);
+          return { ...updated, hacking: { ...updated.hacking, inProgress: false } };
         });
 
         setInProgress(false);
@@ -61,6 +41,10 @@ export default function HackingTab() {
   const startHack = () => {
     if (!inProgress) {
       setInProgress(true);
+      setState((s) => ({
+        ...s,
+        hacking: { ...s.hacking, inProgress: true },
+      }));
     }
   };
 

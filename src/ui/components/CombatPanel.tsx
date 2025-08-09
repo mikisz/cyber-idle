@@ -15,7 +15,7 @@ export default function CombatPanel() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="space-y-2 border p-2">
         <div>Player HP: {player.hp} / {player.hpMax}</div>
         <ProgressBarNeon
           percentage={(player.hp / player.hpMax) * 100}
@@ -24,7 +24,7 @@ export default function CombatPanel() {
         <div className="text-sm">ATK {player.atk} DEF {player.def}</div>
         <div className="text-sm">Weapon: {weapon} / Armor: {armor}</div>
       </div>
-      <div>
+      <div className="space-y-2 border p-2">
         <div>
           {enemy?.name} HP: {combat.enemyHp} / {enemy?.hp}
         </div>
@@ -36,12 +36,12 @@ export default function CombatPanel() {
         <div className="text-sm">ATK {enemy?.atk} DEF {enemy?.def}</div>
         <div className="text-sm">{enemy?.description}</div>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1 max-h-32 overflow-y-auto border p-2">
         {combat.log.map((l, i) => (
           <div key={i}>{l}</div>
         ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex justify-center gap-2 border-t pt-2">
         <ButtonNeon onClick={attack}>Attack</ButtonNeon>
         <ButtonNeon onClick={quickHeal}>Use Item</ButtonNeon>
         <ButtonNeon onClick={flee}>Flee</ButtonNeon>

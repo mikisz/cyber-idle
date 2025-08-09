@@ -1,5 +1,5 @@
 import { useGameStore } from './state/store';
-import { getEnemy, type Enemy } from '../data/enemies';
+import { getEnemyById, type Enemy } from '../data/enemies';
 import { getItem } from '../data/items';
 
 export function calcDamage(atk: number, def: number): number {
@@ -12,7 +12,7 @@ function trimLog(log: string[]): string[] {
 }
 
 export function startCombat(enemyId: string) {
-  const enemy = getEnemy(enemyId);
+  const enemy = getEnemyById(enemyId);
   if (!enemy) return;
   useGameStore.setState((s) => ({
     ...s,
@@ -83,7 +83,7 @@ function handleDefeat(log: string[]) {
 export function attack() {
   const state = useGameStore.getState();
   if (!state.combat.inFight || !state.combat.enemyId) return;
-  const enemy = getEnemy(state.combat.enemyId);
+  const enemy = getEnemyById(state.combat.enemyId);
   if (!enemy) return;
   let enemyHp = state.combat.enemyHp;
   const log = [...state.combat.log];
@@ -116,7 +116,7 @@ export function attack() {
 export function flee() {
   const state = useGameStore.getState();
   if (!state.combat.inFight || !state.combat.enemyId) return;
-  const enemy = getEnemy(state.combat.enemyId);
+  const enemy = getEnemyById(state.combat.enemyId);
   if (!enemy) return;
   const log = [...state.combat.log];
   if (Math.random() < 0.75) {

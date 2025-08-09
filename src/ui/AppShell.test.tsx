@@ -8,8 +8,8 @@ describe('AppShell', () => {
     expect(screen.getByText('Hacking L1')).toBeInTheDocument();
     expect(screen.getByText('Combat L1')).toBeInTheDocument();
     expect(screen.getByTestId('tab-content')).toHaveTextContent('Start hack');
-    expect(screen.getByRole('button', { name: 'Exploration' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Combat' }));
-    expect(screen.getByRole('button', { name: 'Engage' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Combat' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Exploration' }));
+    expect(screen.getByText('Slums')).toBeInTheDocument();
   });
 });

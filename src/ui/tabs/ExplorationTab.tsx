@@ -1,90 +1,82 @@
-import { useState } from 'react';
-import type { Tab } from '../AppShell';
-import { locations } from '../../data/locations';
+import { useGameStore } from '../../game/state/store';
+import { locations, getLocation } from '../../data/locations';
 import { getEnemyById } from '../../data/enemies';
 import { getItem } from '../../data/items';
-import { setLocation, explore } from '../../game/exploration';
-import { addItemToInventory } from '../../game/items';
-import { useGameStore } from '../../game/state/store';
+import { setLocation, exploreOnce, clearEncounter } from '../../game/exploration';
 import Card from '../components/Card';
-import ButtonNeon from '../components/ButtonNeon';
 import SectionHeader from '../components/SectionHeader';
+import ButtonNeon from '../components/ButtonNeon';
 import Modal from '../components/Modal';
+import CombatPanel from '../components/CombatPanel';
+import { getLootTable } from '../../data/lootTables';
 
-interface Props {
-  onNavigate: (tab: Tab) => void;
-}
+export default function ExplorationTab() {
+  const exploration = useGameStore((s) => s.exploration);
+  const currentLocation = exploration.currentLocationId
+    ? getLocation(exploration.currentLocationId)
+    : null;
 
-export default function ExplorationTab({ onNavigate }: Props) {
-  const currentLocation = useGameStore((s) => s.location);
-  const log = useGameStore((s) => s.explorationLog);
-  const [loot, setLoot] = useState<{ itemId: string; quantity: number } | null>(null);
-
-  const appendLog = (entry: string) => {
-    useGameStore.setState((s) => ({
-      ...s,
-      explorationLog: [...s.explorationLog, entry].slice(-5),
-    }));
-  };
-
-  const handleExplore = () => {
-    const result = explore();
-    if (!result) return;
-    if (result.type === 'enemy') {
-      const enemy = getEnemyById(result.enemyId);
-      appendLog(`Encountered ${enemy?.name ?? result.enemyId}`);
-      onNavigate('combat');
-    } else if (result.type === 'loot') {
-      setLoot({ itemId: result.itemId, quantity: result.quantity });
-    } else if (result.type === 'credits') {
-      appendLog(`Found ${result.amount} credits`);
-    } else {
-      appendLog('Found nothing');
-    }
-  };
-
-  const confirmLoot = () => {
-    if (!loot) return;
-    addItemToInventory(loot.itemId, loot.quantity);
-    const item = getItem(loot.itemId);
-    appendLog(
-      `Found ${loot.quantity > 1 ? `${loot.quantity}x ` : ''}${item?.name ?? loot.itemId}`,
+  if (exploration.view === 'select') {
+    return (
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
+        {locations.map((loc) => {
+          const lootTable = getLootTable(loc.id);
+          return (
+            <Card key={loc.id} className="space-y-2 p-4">
+              <SectionHeader>{loc.name}</SectionHeader>
+              <p>{loc.description}</p>
+              <div className="text-sm">
+                Enemies: {loc.enemies.map((e) => getEnemyById(e)?.name ?? e).join(', ')}
+              </div>
+              <div className="text-sm">
+                Loot: {lootTable?.drops
+                  .map((d) =>
+                    d.itemId === 'credits'
+                      ? '💰'
+                      : getItem(d.itemId)?.iconText ?? d.itemId,
+                  )
+                  .join(' ')}
+              </div>
+              <ButtonNeon onClick={() => setLocation(loc.id)}>Enter</ButtonNeon>
+            </Card>
+          );
+        })}
+      </div>
     );
-    setLoot(null);
-  };
+  }
 
   return (
     <Card className="space-y-4 p-4">
-      <SectionHeader>Exploration</SectionHeader>
-      <div>
-        <select
-          value={currentLocation ?? ''}
-          onChange={(e) => setLocation(e.target.value)}
-          className="bg-black"
-        >
-          <option value="">Select Location</option>
-          {locations.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <ButtonNeon onClick={handleExplore} disabled={!currentLocation}>
-        Explore
-      </ButtonNeon>
+      <SectionHeader>{currentLocation?.name}</SectionHeader>
+      <p>{currentLocation?.description}</p>
+      {exploration.view !== 'encounter' && (
+        <ButtonNeon onClick={() => exploreOnce()}>Explore</ButtonNeon>
+      )}
       <div className="space-y-1">
-        {log.map((l, i) => (
+        {exploration.recentLog.map((l, i) => (
           <div key={i}>{l}</div>
         ))}
       </div>
+      {exploration.view === 'encounter' && <CombatPanel />}
       <Modal
-        open={loot !== null}
-        onClose={() => setLoot(null)}
-        actions={<ButtonNeon onClick={confirmLoot}>Continue</ButtonNeon>}
+        open={!!exploration.lastEvent}
+        onClose={clearEncounter}
+        actions={<ButtonNeon onClick={clearEncounter}>Continue Exploring</ButtonNeon>}
       >
-        You found {getItem(loot?.itemId ?? '')?.name ?? loot?.itemId}!
+        {exploration.lastEvent?.summary}
       </Modal>
+      {exploration.view === 'location' && (
+        <ButtonNeon
+          onClick={() =>
+            useGameStore.setState((s) => ({
+              ...s,
+              exploration: { ...s.exploration, currentLocationId: null, view: 'select' },
+            }))
+          }
+        >
+          Change Location
+        </ButtonNeon>
+      )}
     </Card>
   );
 }

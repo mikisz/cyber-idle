@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import HackingTab from './tabs/HackingTab';
-import CombatTab from './tabs/CombatTab';
 import ExplorationTab from './tabs/ExplorationTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
@@ -12,7 +11,6 @@ import { NeonToast } from './Toast';
 
 export type Tab =
   | 'hacking'
-  | 'combat'
   | 'inventory'
   | 'store'
   | 'upgrades'
@@ -23,7 +21,6 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
   { key: 'character', label: 'Character', icon: '👤' },
   { key: 'hacking', label: 'Hacking', icon: '💻' },
   { key: 'exploration', label: 'Exploration', icon: '🧭' },
-  { key: 'combat', label: 'Combat', icon: '⚔️' },
   { key: 'inventory', label: 'Inventory', icon: '🎒' },
   { key: 'store', label: 'Store', icon: '🏪' },
   { key: 'upgrades', label: 'Upgrades', icon: '🛠' },
@@ -38,10 +35,8 @@ export default function AppShell() {
     switch (current) {
       case 'character':
         return <CharacterTab />;
-      case 'combat':
-        return <CombatTab onNavigate={setCurrent} />;
       case 'exploration':
-        return <ExplorationTab onNavigate={setCurrent} />;
+        return <ExplorationTab />;
       case 'inventory':
         return <InventoryTab />;
       case 'store':

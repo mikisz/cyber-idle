@@ -15,7 +15,7 @@ function trimLog(log: string[]): string[] {
   return log.slice(-10);
 }
 
-export function startCombat(enemyId: string, opts?: { fromExploration?: boolean }) {
+export function startCombat(enemyId: string) {
   const enemy = getEnemyById(enemyId);
   if (!enemy) return;
   useGameStore.setState((s) => ({
@@ -25,14 +25,15 @@ export function startCombat(enemyId: string, opts?: { fromExploration?: boolean 
       enemyHp: enemy.hp,
       inFight: true,
       log: [`Engaged ${enemy.name}`],
-      fromExploration: opts?.fromExploration ?? false,
     },
   }));
 }
 
 function awardVictory(enemy: Enemy, log: string[]) {
   const state = useGameStore.getState();
-  const { items, credits: lootCredits } = rollLoot(state.location ?? '');
+  const { items, credits: lootCredits } = rollLoot(
+    state.exploration.currentLocationId ?? '',
+  );
   const lootMessages: string[] = [];
   for (const drop of items) {
     const item = getItem(drop.itemId);
@@ -45,7 +46,6 @@ function awardVictory(enemy: Enemy, log: string[]) {
   }
   const gainedXp = getEnemyXp(enemy);
   addCombatXp(gainedXp);
-  const fromExploration = state.combat.fromExploration;
   useGameStore.setState((s) => {
     const resources = { ...s.resources };
     resources.credits += lootCredits;
@@ -63,7 +63,21 @@ function awardVictory(enemy: Enemy, log: string[]) {
         enemyHp: 0,
         inFight: false,
         log: trimLog([...log, ...lootMessages, `Defeated ${enemy.name}`]),
-        fromExploration,
+      },
+      exploration: {
+        ...s.exploration,
+        view: 'location',
+        currentEnemyId: null,
+        lastEvent: {
+          type: 'enemy',
+          summary: `Defeated ${enemy.name}`,
+          credits: lootCredits,
+          itemId: items[0]?.itemId,
+        },
+        recentLog: trimLog([
+          ...s.exploration.recentLog,
+          `Defeated ${enemy.name}`,
+        ]),
       },
     };
   });
@@ -73,7 +87,7 @@ function awardVictory(enemy: Enemy, log: string[]) {
   }
 }
 
-function handleDefeat(log: string[]) {
+function handleDefeat(enemy: Enemy, log: string[]) {
   useGameStore.setState((s) => {
     const lost = Math.floor(s.resources.credits * 0.1);
     const newLog = [...log, `You were defeated and lost ${lost} credits`];
@@ -86,9 +100,17 @@ function handleDefeat(log: string[]) {
         enemyHp: 0,
         inFight: false,
         log: trimLog(newLog),
-        fromExploration: false,
       },
-      location: null,
+      exploration: {
+        ...s.exploration,
+        view: 'location',
+        currentEnemyId: null,
+        lastEvent: { type: 'enemy', summary: `Defeated by ${enemy.name}` },
+        recentLog: trimLog([
+          ...s.exploration.recentLog,
+          `Defeated by ${enemy.name}`,
+        ]),
+      },
     };
   });
 }
@@ -115,7 +137,7 @@ export function attack() {
   log.push(`${enemy.name} hits you for ${dmgToPlayer}`);
 
   if (playerHp <= 0) {
-    handleDefeat(log);
+    handleDefeat(enemy, log);
     return;
   }
 
@@ -141,7 +163,16 @@ export function flee() {
         enemyHp: 0,
         inFight: false,
         log: trimLog(log),
-        fromExploration: state.combat.fromExploration,
+      },
+      exploration: {
+        ...s.exploration,
+        view: 'location',
+        currentEnemyId: null,
+        lastEvent: { type: 'enemy', summary: `Fled from ${enemy.name}` },
+        recentLog: trimLog([
+          ...s.exploration.recentLog,
+          `Fled from ${enemy.name}`,
+        ]),
       },
     }));
     return;
@@ -151,7 +182,7 @@ export function flee() {
   const hp = state.player.hp - dmg;
   log.push(`${enemy.name} hits you for ${dmg}`);
   if (hp <= 0) {
-    handleDefeat(log);
+    handleDefeat(enemy, log);
     return;
   }
   useGameStore.setState((s) => ({

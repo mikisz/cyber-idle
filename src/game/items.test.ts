@@ -20,6 +20,18 @@ describe('items', () => {
     expect(state.inventory.medkit_s).toBeUndefined();
   });
 
+  it('cannot heal without consumable', () => {
+    useGameStore.setState({
+      ...initialState,
+      inventory: {},
+      player: { ...initialState.player, hp: 10 },
+    });
+    const used = consume('medkit_s');
+    expect(used).toBe(false);
+    const state = useGameStore.getState();
+    expect(state.player.hp).toBe(10);
+  });
+
   it('skips and warns on unknown item', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     addItemToInventory('unknown_item');

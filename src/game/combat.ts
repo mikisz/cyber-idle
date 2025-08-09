@@ -209,9 +209,3 @@ export function flee() {
   }));
 }
 
-export function quickHeal() {
-  useGameStore.setState((s) => ({
-    ...s,
-    player: { ...s.player, hp: s.player.hpMax },
-  }));
-}

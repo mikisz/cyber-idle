@@ -30,7 +30,6 @@ describe('combat system', () => {
     expect(state.skills.combat.xp).toBe(10);
     expect(state.player.credits).toBe(5);
     expect(state.inventory.scrap_metal).toBe(1);
-    expect(state.inventory.medkit).toBe(1);
 
     rand.mockRestore();
   });

@@ -2,17 +2,19 @@ import { useState } from 'react';
 import HackingTab from './tabs/HackingTab';
 import CombatTab from './tabs/CombatTab';
 import InventoryTab from './tabs/InventoryTab';
+import StoreTab from './tabs/StoreTab';
 import UpgradesTab from './tabs/UpgradesTab';
 import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
 import { NeonToast } from './Toast';
 
-type Tab = 'hacking' | 'combat' | 'inventory' | 'upgrades';
+type Tab = 'hacking' | 'combat' | 'inventory' | 'store' | 'upgrades';
 
 const tabs: { key: Tab; label: string }[] = [
   { key: 'hacking', label: 'Hacking' },
   { key: 'combat', label: 'Combat' },
   { key: 'inventory', label: 'Inventory' },
+  { key: 'store', label: 'Store' },
   { key: 'upgrades', label: 'Upgrades' }
 ];
 
@@ -26,6 +28,8 @@ export default function AppShell() {
         return <CombatTab />;
       case 'inventory':
         return <InventoryTab />;
+      case 'store':
+        return <StoreTab />;
       case 'upgrades':
         return <UpgradesTab />;
       default:

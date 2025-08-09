@@ -9,7 +9,6 @@ export const lootTables: LootTable[] = [
     locationId: 'slums',
     drops: [
       { itemId: 'scrap_metal', chance: 0.5 },
-      { itemId: 'medkit', chance: 0.05 },
     ],
   },
   {

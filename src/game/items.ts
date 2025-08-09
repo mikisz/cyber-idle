@@ -22,12 +22,11 @@ export function addItemToInventory(itemId: string, quantity = 1) {
 
 export function equipItem(itemId: string) {
   const item = getItem(itemId);
-  if (!item || item.type === 'consumable' || item.type === 'quest' || item.type === 'misc')
-    return;
+  if (!item || item.type === 'consumable' || item.type === 'misc') return;
   useGameStore.setState((state) => {
     const count = state.inventory[itemId] ?? 0;
     if (count <= 0) return state;
-    const slot = item.type as 'weapon' | 'armor';
+    const slot = item.type as 'weapon' | 'armor' | 'accessory';
     const newInventory = { ...state.inventory, [itemId]: count - 1 };
     if (newInventory[itemId] <= 0) delete newInventory[itemId];
     const newEquipped = { ...state.equipped };
@@ -61,24 +60,5 @@ export function unequipItem(slot: 'weapon' | 'armor' | 'accessory') {
     }
     return { ...state, inventory: newInventory, equipped: newEquipped, player };
   });
-}
-
-export function consumeItem(itemId: string): boolean {
-  const item = getItem(itemId);
-  if (!item || item.type !== 'consumable') return false;
-  let used = false;
-  useGameStore.setState((state) => {
-    const count = state.inventory[itemId] ?? 0;
-    if (count <= 0) return state;
-    const newInventory = { ...state.inventory, [itemId]: count - 1 };
-    if (newInventory[itemId] <= 0) delete newInventory[itemId];
-    const newPlayer = { ...state.player };
-    if (item.stats?.heal) {
-      newPlayer.hp = Math.min(newPlayer.hp + item.stats.heal, newPlayer.hpMax);
-    }
-    used = true;
-    return { ...state, inventory: newInventory, player: newPlayer };
-  });
-  return used;
 }
 

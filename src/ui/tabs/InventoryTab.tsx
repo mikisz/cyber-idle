@@ -1,5 +1,6 @@
 import { useGameStore } from '../../game/state/store';
-import { consumeItem, equipItem, unequipItem } from '../../game/items';
+import { equipItem, unequipItem } from '../../game/items';
+import { consume } from '../../game/shop';
 import { getItem } from '../../data/items';
 import { showToast } from '../Toast';
 
@@ -9,7 +10,7 @@ function ItemStats({ id }: { id: string }) {
   const stats = [] as string[];
   if (item.stats?.attack) stats.push(`ATK +${item.stats.attack}`);
   if (item.stats?.defense) stats.push(`DEF +${item.stats.defense}`);
-  if (item.stats?.heal) stats.push(`Heal ${item.stats.heal}`);
+  if (item.effect?.heal) stats.push(`Heal ${item.effect.heal}`);
   return <div className="text-sm text-neon-cyan">{stats.join(', ')}</div>;
 }
 
@@ -21,9 +22,9 @@ export default function InventoryTab() {
     const item = getItem(id);
     if (!item) return;
     if (item.type === 'consumable') {
-      const used = consumeItem(id);
-      if (used && id === 'medkit') {
-        showToast('+50 HP (Medkit)');
+      const used = consume(id);
+      if (used && item.effect?.heal) {
+        showToast(`+${item.effect.heal} HP (${item.name})`);
       }
     } else {
       equipItem(id);

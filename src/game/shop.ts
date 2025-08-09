@@ -9,11 +9,11 @@ export function buyConsumable(itemId: string): boolean {
   const price = item.buyPriceCredits ?? 0;
   let success = false;
   useGameStore.setState((state) => {
-    if (state.player.credits < price) return state;
+    if (state.resources.credits < price) return state;
     success = true;
     return {
       ...state,
-      player: { ...state.player, credits: state.player.credits - price },
+      resources: { ...state.resources, credits: state.resources.credits - price },
       inventory: {
         ...state.inventory,
         [itemId]: (state.inventory[itemId] ?? 0) + 1,
@@ -29,10 +29,14 @@ export function buyUpgrade(upgradeId: string): boolean {
   let success = false;
   useGameStore.setState((state) => {
     if (state.upgrades.owned[upgradeId]) return state;
-    if (state.player.credits < upgrade.costCredits) return state;
+    if (state.resources.credits < upgrade.costCredits) return state;
     success = true;
     const owned = { ...state.upgrades.owned, [upgradeId]: true };
-    const player = { ...state.player, credits: state.player.credits - upgrade.costCredits };
+    const player = { ...state.player };
+    const resources = {
+      ...state.resources,
+      credits: state.resources.credits - upgrade.costCredits,
+    };
     if (upgrade.effects.atk) player.atk += upgrade.effects.atk;
     if (upgrade.effects.hpMax) {
       player.hpMax += upgrade.effects.hpMax;
@@ -45,6 +49,7 @@ export function buyUpgrade(upgradeId: string): boolean {
     }
     return {
       ...state,
+      resources,
       player,
       hacking: { ...state.hacking, timeMultiplier },
       upgrades: { owned },

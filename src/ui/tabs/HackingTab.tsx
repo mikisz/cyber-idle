@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { BASE_HACK_DURATION, performHack } from '../../game/hacking';
+import { getNextLevelXp } from '../../game/skills';
 
 export default function HackingTab() {
   const hacking = useGameStore((s) => s.skills.hacking);
@@ -36,7 +37,7 @@ export default function HackingTab() {
     return () => clearInterval(interval);
   }, [inProgress, setState, timeMultiplier]);
 
-  const xpNeeded = hacking.level * 100;
+  const xpNeeded = getNextLevelXp(hacking.level);
 
   const startHack = () => {
     if (!inProgress) {

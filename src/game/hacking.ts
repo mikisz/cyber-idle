@@ -1,4 +1,5 @@
 import { GameState } from './state/store';
+import { getNextLevelXp } from './skills';
 
 export const BASE_HACK_DURATION = 10000; // ms
 
@@ -26,8 +27,8 @@ export function performHack(state: GameState): {
 
   let { level, xp } = state.skills.hacking;
   xp += xpGain;
-  while (xp >= level * 100) {
-    xp -= level * 100;
+  while (xp >= getNextLevelXp(level)) {
+    xp -= getNextLevelXp(level);
     level += 1;
   }
 
@@ -39,7 +40,7 @@ export function performHack(state: GameState): {
 
   const newState: GameState = {
     ...state,
-    player: { ...state.player, credits: state.player.credits + credits },
+    resources: { ...state.resources, credits: state.resources.credits + credits },
     skills: { ...state.skills, hacking: { level, xp } },
     inventory: inv,
   };

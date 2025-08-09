@@ -4,10 +4,10 @@ import { buyUpgrade } from '../../game/shop';
 import { showToast } from '../Toast';
 
 export default function UpgradesTab() {
-  const player = useGameStore((s) => s.player);
+  const resources = useGameStore((s) => s.resources);
   const owned = useGameStore((s) => s.upgrades.owned);
 
-  const canAfford = (cost: number) => player.credits >= cost;
+  const canAfford = (cost: number) => resources.credits >= cost;
 
   const buy = (id: string, name: string) => {
     const success = buyUpgrade(id);

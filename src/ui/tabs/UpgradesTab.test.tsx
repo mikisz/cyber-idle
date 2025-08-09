@@ -15,7 +15,7 @@ describe('Upgrades', () => {
 
     useGameStore.setState((s) => ({
       ...s,
-      player: { ...s.player, credits: 200 },
+      resources: { ...s.resources, credits: 200 },
     }));
 
     render(<UpgradesTab />);
@@ -27,12 +27,12 @@ describe('Upgrades', () => {
     act(() => {
       vi.advanceTimersByTime(9500);
     });
-    expect(useGameStore.getState().player.credits).toBe(80);
+    expect(useGameStore.getState().resources.credits).toBe(80);
 
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    expect(useGameStore.getState().player.credits).toBe(130);
+    expect(useGameStore.getState().resources.credits).toBe(130);
 
     rand.mockRestore();
     vi.useRealTimers();
@@ -41,7 +41,7 @@ describe('Upgrades', () => {
   it('buying tendo_servo_1 increases atk by 2', () => {
     useGameStore.setState((s) => ({
       ...s,
-      player: { ...s.player, credits: 200 },
+      resources: { ...s.resources, credits: 200 },
     }));
 
     render(<UpgradesTab />);
@@ -52,7 +52,8 @@ describe('Upgrades', () => {
   it('buying subdermal_armor_1 increases hpMax by 15 and heals to full', () => {
     useGameStore.setState((s) => ({
       ...s,
-      player: { ...s.player, credits: 200, hp: 10 },
+      resources: { ...s.resources, credits: 200 },
+      player: { ...s.player, hp: 10 },
     }));
 
     render(<UpgradesTab />);

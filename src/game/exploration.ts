@@ -28,7 +28,7 @@ export function explore() {
   if (loot.credits > 0) {
     useGameStore.setState((s) => ({
       ...s,
-      player: { ...s.player, credits: s.player.credits + loot.credits },
+      resources: { ...s.resources, credits: s.resources.credits + loot.credits },
     }));
     return { type: 'credits', amount: loot.credits } as const;
   }

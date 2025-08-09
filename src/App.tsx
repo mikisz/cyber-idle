@@ -7,6 +7,12 @@ function App() {
   useEffect(() => {
     loadGame().then((state) => {
       if (state) {
+        if (state.combat?.inFight) {
+          state = {
+            ...state,
+            combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
+          };
+        }
         useGameStore.setState(state);
       }
     });

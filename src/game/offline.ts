@@ -1,5 +1,6 @@
 import { GameState } from './state/store';
 import { BASE_HACK_DURATION, performHack } from './hacking';
+import { getItem } from '../data/items';
 
 export const MAX_OFFLINE_MS = 12 * 60 * 60 * 1000;
 
@@ -30,6 +31,19 @@ export function applyOfflineProgress(
     for (let i = 0; i < ticks; i++) {
       const result = performHack(newState);
       newState = result.state;
+      if (result.loot) {
+        if (getItem(result.loot)) {
+          newState = {
+            ...newState,
+            inventory: {
+              ...newState.inventory,
+              [result.loot]: (newState.inventory[result.loot] ?? 0) + 1,
+            },
+          };
+        } else {
+          console.warn(`Unknown item '${result.loot}' - not added to inventory`);
+        }
+      }
       rewards.credits += result.rewards.credits;
       rewards.data += result.rewards.data;
       rewards.xp += result.rewards.xp;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../game/state/store';
 import { BASE_HACK_DURATION, performHack } from '../../game/hacking';
+import { addItemToInventory } from '../../game/items';
 import { getNextLevelXp } from '../../game/skills';
 
 export default function HackingTab() {
@@ -24,10 +25,13 @@ export default function HackingTab() {
       if (elapsed >= duration) {
         clearInterval(interval);
 
+        let loot: string | null = null;
         setState((state) => {
-          const { state: updated } = performHack(state);
+          const { state: updated, loot: drop } = performHack(state);
+          loot = drop ?? null;
           return { ...updated, hacking: { ...updated.hacking, inProgress: false } };
         });
+        if (loot) addItemToInventory(loot);
 
         setInProgress(false);
         setProgress(0);

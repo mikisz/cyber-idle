@@ -32,17 +32,12 @@ export function performHack(state: GameState): {
     level += 1;
   }
 
-  const inv = { ...state.inventory };
   const drop = rollHackingLoot();
-  if (drop) {
-    inv[drop] = (inv[drop] ?? 0) + 1;
-  }
 
   const newState: GameState = {
     ...state,
     resources: { ...state.resources, credits: state.resources.credits + credits },
     skills: { ...state.skills, hacking: { level, xp } },
-    inventory: inv,
   };
 
   return { state: newState, rewards: { credits, data: dataGain, xp: xpGain }, loot: drop };

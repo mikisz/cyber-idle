@@ -10,7 +10,10 @@ function applyItem(player: GameState['player'], item: Item, op: 1 | -1) {
 
 export function addItemToInventory(itemId: string, quantity = 1) {
   const item = getItem(itemId);
-  if (!item) return;
+  if (!item) {
+    console.warn(`Unknown item '${itemId}' - not added to inventory`);
+    return;
+  }
   useGameStore.setState((s) => ({
     ...s,
     inventory: {

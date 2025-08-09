@@ -8,7 +8,7 @@ describe('HackingTab', () => {
     useGameStore.setState(initialState); // reset store
   });
 
-  it('rewards credits and xp after hacking completes', () => {
+  it('rewards credits, xp and loot after hacking completes', () => {
     vi.useFakeTimers();
     vi.spyOn(Math, 'random').mockReturnValue(0); // deterministic rewards
 
@@ -22,6 +22,7 @@ describe('HackingTab', () => {
     const state = useGameStore.getState();
     expect(state.resources.credits).toBe(50);
     expect(state.skills.hacking.xp).toBe(5);
+    expect(state.inventory.neural_chip).toBe(1);
 
     vi.useRealTimers();
   });

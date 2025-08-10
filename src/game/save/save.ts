@@ -1,11 +1,12 @@
 import { GameState, initialState } from '../state/store';
 import { getNextLevelXp } from '../skills';
 import { calculateBonuses } from '../items';
+import { districts } from '../../data/world';
 
 const DB_NAME = 'cyber-idle';
 const STORE_NAME = 'game';
 const SAVE_KEY = 'state';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 interface PersistedData {
   version: number;
@@ -49,7 +50,12 @@ export async function loadGame(): Promise<GameState | null> {
         combat: { ...initialState.combat, ...s.combat },
         exploration: { ...initialState.exploration, ...s.exploration },
         meta: { ...initialState.meta, ...s.meta },
+        world: { ...initialState.world, ...s.world },
       };
+      if (!merged.world.activeDistrictId) {
+        merged.world.activeDistrictId =
+          districts.find((d) => merged.playerLevel >= d.unlockLevel)?.id ?? null;
+      }
       if (typeof merged.playerLevel !== 'number') merged.playerLevel = 1;
       if (typeof merged.playerXP !== 'number') merged.playerXP = 0;
       merged.playerXPToNextLevel =

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { districts } from '../../data/world';
 
 export interface GameState {
   resources: { credits: number; data: number };
@@ -54,6 +55,7 @@ export interface GameState {
     recentLog: string[];
   };
   meta: { lastSaveTimestamp: number | null };
+  world: { activeDistrictId: string | null };
 }
 
 export const initialState: GameState = {
@@ -86,6 +88,17 @@ export const initialState: GameState = {
     recentLog: [],
   },
   meta: { lastSaveTimestamp: null },
+  world: { activeDistrictId: districts[0]?.id ?? null },
 };
 
 export const useGameStore = create<GameState>(() => initialState);
+
+export function setActiveDistrict(id: string | null): void {
+  useGameStore.setState((s) => ({
+    world: { ...s.world, activeDistrictId: id },
+  }));
+}
+
+export function getDistrictById(id: string) {
+  return districts.find((d) => d.id === id);
+}

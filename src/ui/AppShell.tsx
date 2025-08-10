@@ -1,98 +1,153 @@
 import { useState } from 'react';
-import HackingTab from './tabs/HackingTab';
 import MapTab from './tabs/MapTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
-import UpgradesTab from './tabs/UpgradesTab';
-import StatsTab from './tabs/StatsTab';
-import SettingsMenu from './SettingsMenu';
-import { useGameStore } from '../game/state/store';
-import { NeonToast, showToast } from './Toast';
-import { stopHacking } from '../game/hacking';
+import { useGameStore, getDistrictById } from '../game/state/store';
+import ActiveActionBar from './components/ActiveActionBar';
+
+function Placeholder({ name }: { name: string }) {
+  return <div className="p-4 text-neon-cyan">{name} - coming soon</div>;
+}
 
 export type Tab =
-  | 'hacking'
+  | 'map'
   | 'inventory'
+  | 'implants'
+  | 'factions'
+  | 'contracts'
   | 'store'
-  | 'upgrades'
-  | 'stats'
-  | 'map';
+  | 'bank'
+  | 'settings';
 
 const tabs: { key: Tab; label: string; icon: string }[] = [
-  { key: 'stats', label: 'Stats', icon: '📊' },
-  { key: 'hacking', label: 'Hacking', icon: '💻' },
-  { key: 'map', label: 'Map', icon: '🗺️' },
-  { key: 'inventory', label: 'Inventory', icon: '🎒' },
-  { key: 'store', label: 'Store', icon: '🏪' },
-  { key: 'upgrades', label: 'Upgrades', icon: '🛠' },
+  { key: 'map', label: 'Mapa', icon: '🗺️' },
+  { key: 'inventory', label: 'Ekwipunek', icon: '🎒' },
+  { key: 'implants', label: 'Implanty', icon: '🧠' },
+  { key: 'factions', label: 'Frakcje', icon: '👥' },
+  { key: 'contracts', label: 'Kontrakty', icon: '📜' },
+  { key: 'store', label: 'Sklep', icon: '🏪' },
+  { key: 'bank', label: 'Bank', icon: '🏦' },
+  { key: 'settings', label: 'Ustawienia', icon: '⚙️' },
 ];
 
 export default function AppShell() {
-  const [current, setCurrent] = useState<Tab>('hacking');
+  const [current, setCurrent] = useState<Tab>('map');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const resources = useGameStore((s) => s.resources);
-  const skills = useGameStore((s) => s.skills);
-  const playerLevel = useGameStore((s) => s.playerLevel);
+  const activeDistrictId = useGameStore((s) => s.world.activeDistrictId);
+
+  const districtName = activeDistrictId
+    ? getDistrictById(activeDistrictId)?.name
+    : null;
+  const breadcrumb =
+    current === 'map'
+      ? districtName
+        ? `Mapa > ${districtName}`
+        : 'Mapa'
+      : tabs.find((t) => t.key === current)?.label;
 
   const renderTab = () => {
     switch (current) {
-      case 'stats':
-        return <StatsTab />;
       case 'map':
         return <MapTab />;
       case 'inventory':
         return <InventoryTab />;
       case 'store':
         return <StoreTab />;
-      case 'upgrades':
-        return <UpgradesTab />;
       default:
-        return <HackingTab />;
+        return <Placeholder name={tabs.find((t) => t.key === current)?.label ?? ''} />;
     }
   };
 
+  const sidebarButtons = (
+    <div className="flex h-full flex-col">
+      {tabs.map((tab) => (
+        <button
+          key={tab.key}
+          aria-label={tab.label}
+          onClick={() => {
+            setCurrent(tab.key);
+            setMobileNavOpen(false);
+          }}
+          className={`group relative flex items-center justify-center p-4 ${
+            current === tab.key
+              ? 'text-neon-magenta'
+              : 'text-neon-cyan'
+          }`}
+        >
+          <span>{tab.icon}</span>
+          <span className="absolute left-full ml-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs group-hover:block">
+            {tab.label}
+          </span>
+        </button>
+      ))}
+      <div className="mt-auto p-2 text-xs text-center text-neon-cyan">
+        Cr {resources.credits} / Data {resources.data}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex h-full flex-col bg-surface">
-      <NeonToast />
-      <header className="flex justify-between p-4 text-neon-cyan">
-        <span>Credits: {resources.credits}</span>
-        <div className="flex items-center gap-2">
-          <span>Data: {resources.data}</span>
-          <span className="text-xs">Lvl {playerLevel}</span>
-          <span className="text-xs">Hacking L{skills.hacking.level}</span>
-          <span className="text-xs">Combat L{skills.combat.level}</span>
-          <span className="text-xs">Exploration L{skills.exploration.level}</span>
-          <SettingsMenu />
-        </div>
-      </header>
-      <main className="flex-1 overflow-y-auto" data-testid="tab-content">
-        {renderTab()}
-      </main>
-      <nav className="flex justify-around border-t border-neon-magenta p-2 text-lg">
-        {tabs.map((tab) => (
+    <div className="flex h-full bg-surface">
+      {/* Desktop sidebar */}
+      <aside className="hidden w-20 border-r border-neon-magenta md:block">
+        {sidebarButtons}
+      </aside>
+      <div className="flex flex-1 flex-col">
+        {/* Mobile top bar */}
+        <header className="flex items-center justify-between border-b border-neon-magenta p-2 md:hidden">
+          <span className="text-neon-cyan">{breadcrumb}</span>
           <button
-            key={tab.key}
-            aria-label={tab.label}
-            className={`flex flex-1 items-center justify-center gap-1 p-2 ${
-              current === tab.key
-                ? 'text-neon-magenta drop-shadow-[0_0_6px_#ff00ff]'
-                : 'text-neon-cyan'
-            }`}
-            onClick={() => {
-              if (tab.key === 'map') {
-                const s = useGameStore.getState();
-                if (s.hackingState.isRunning) {
-                  stopHacking();
-                  showToast('Hacking paused');
-                }
-              }
-              setCurrent(tab.key);
-            }}
+            className="text-neon-cyan"
+            onClick={() => setMobileNavOpen(true)}
           >
-            <span>{tab.icon}</span>
-            {current === tab.key && <span>{tab.label}</span>}
+            ☰
           </button>
-        ))}
+        </header>
+        <main className="flex-1 overflow-y-auto pb-32 md:pb-0">
+          {renderTab()}
+        </main>
+      </div>
+      {/* Mobile sidebar overlay */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        >
+          <div
+            className="absolute bottom-0 top-0 w-40 bg-surface"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sidebarButtons}
+          </div>
+        </div>
+      )}
+      {/* Bottom nav for mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-20 flex justify-around border-t border-neon-magenta bg-surface p-2 text-lg">
+        {['map', 'inventory', 'contracts'].map((key) => {
+          const tab = tabs.find((t) => t.key === key as Tab)!;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setCurrent(tab.key)}
+              className={
+                current === tab.key
+                  ? 'text-neon-magenta'
+                  : 'text-neon-cyan'
+              }
+            >
+              {tab.icon}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setMobileNavOpen(true)}
+          className="text-neon-cyan"
+        >
+          ☰
+        </button>
       </nav>
+      <ActiveActionBar />
     </div>
   );
 }

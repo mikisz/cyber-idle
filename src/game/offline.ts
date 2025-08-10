@@ -48,7 +48,6 @@ function applyOfflineHacking(
 
 function applyOfflineExploration(
   state: GameState,
-  _clampedMs: number,
 ): { state: GameState; rewards: OfflineRewards } {
   // TODO: implement exploration offline simulation
   return { state, rewards: { credits: 0, data: 0, xp: 0 } };
@@ -56,7 +55,6 @@ function applyOfflineExploration(
 
 function applyOfflineCombat(
   state: GameState,
-  _clampedMs: number,
 ): { state: GameState; rewards: OfflineRewards } {
   // TODO: implement combat offline simulation
   return { state, rewards: { credits: 0, data: 0, xp: 0 } };
@@ -88,13 +86,13 @@ export function applyOfflineProgress(
 
   // Placeholder for future offline simulations
   // applyOfflineExploration and applyOfflineCombat currently return no rewards
-  const explorationRes = applyOfflineExploration(newState, clamped);
+  const explorationRes = applyOfflineExploration(newState);
   newState = explorationRes.state;
   rewards.credits += explorationRes.rewards.credits;
   rewards.data += explorationRes.rewards.data;
   rewards.xp += explorationRes.rewards.xp;
 
-  const combatRes = applyOfflineCombat(newState, clamped);
+  const combatRes = applyOfflineCombat(newState);
   newState = combatRes.state;
   rewards.credits += combatRes.rewards.credits;
   rewards.data += combatRes.rewards.data;

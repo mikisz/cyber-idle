@@ -2,9 +2,9 @@ import { useGameStore } from './state/store';
 import { getItem } from '../data/items';
 import { getUpgrade } from '../data/upgrades';
 
-export function buyConsumable(itemId: string): boolean {
+export function buyItem(itemId: string): boolean {
   const item = getItem(itemId);
-  if (!item || item.type !== 'consumable') return false;
+  if (!item) return false;
   if (item.source === 'loot-only') return false;
   const priceCredits = item.buyPriceCredits ?? 0;
   const priceData = item.buyPriceData;
@@ -98,4 +98,27 @@ export function consume(itemId: string): boolean {
     return { ...state, inventory: newInventory, player };
   });
   return used;
+}
+
+export function sellItem(itemId: string): boolean {
+  const item = getItem(itemId);
+  if (!item) return false;
+  let sold = false;
+  useGameStore.setState((state) => {
+    if (Object.values(state.equipped).includes(itemId)) return state;
+    const count = state.inventory[itemId] ?? 0;
+    if (count <= 0) return state;
+    sold = true;
+    const newInventory = { ...state.inventory, [itemId]: count - 1 };
+    if (newInventory[itemId] <= 0) delete newInventory[itemId];
+    return {
+      ...state,
+      inventory: newInventory,
+      resources: {
+        ...state.resources,
+        credits: state.resources.credits + item.value,
+      },
+    };
+  });
+  return sold;
 }

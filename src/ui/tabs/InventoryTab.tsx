@@ -1,11 +1,20 @@
 import { useGameStore } from '../../game/state/store';
 import { equipItem, unequipItem } from '../../game/items';
-import { consume } from '../../game/shop';
-import { getItem } from '../../data/items';
+import { consume, sellItem } from '../../game/shop';
+import { getItem, type Item } from '../../data/items';
 import { showToast } from '../Toast';
 import ButtonNeon from '../components/ButtonNeon';
 import Card from '../components/Card';
 import SectionHeader from '../components/SectionHeader';
+import { useState } from 'react';
+
+const typeIcons: Record<Item['type'], string> = {
+  weapon: '🗡️',
+  armor: '🛡️',
+  consumable: '💊',
+  accessory: '🔩',
+  misc: '📦',
+};
 
 function ItemStats({ id }: { id: string }) {
   const item = getItem(id);
@@ -20,17 +29,29 @@ function ItemStats({ id }: { id: string }) {
 export default function InventoryTab() {
   const inventory = useGameStore((s) => s.inventory);
   const equipped = useGameStore((s) => s.equipped);
+  const [selected, setSelected] = useState<string | null>(null);
 
-  const handleItem = (id: string) => {
-    const item = getItem(id);
-    if (!item) return;
-    if (item.type === 'consumable') {
-      const used = consume(id);
-      if (used && item.effect?.heal) {
-        showToast(`+${item.effect.heal} HP (${item.name})`);
+  const selectedItem = selected ? getItem(selected) : null;
+
+  const handleUse = () => {
+    if (!selectedItem) return;
+    if (selectedItem.type === 'consumable') {
+      const used = consume(selectedItem.id);
+      if (used && selectedItem.effect?.heal) {
+        showToast(`+${selectedItem.effect.heal} HP (${selectedItem.name})`);
       }
     } else {
-      equipItem(id);
+      equipItem(selectedItem.id);
+    }
+    setSelected(null);
+  };
+
+  const handleSell = () => {
+    if (!selectedItem) return;
+    const sold = sellItem(selectedItem.id);
+    if (sold) {
+      showToast(`Sold ${selectedItem.name} for ${selectedItem.value} credits.`);
+      setSelected(null);
     }
   };
 
@@ -65,25 +86,54 @@ export default function InventoryTab() {
         {Object.keys(inventory).length === 0 ? (
           <div>Empty</div>
         ) : (
-          <ul className="grid grid-cols-2 gap-2">
-            {Object.entries(inventory).map(([id, qty]) => {
-              const item = getItem(id);
-              return (
-                <li key={id}>
-                  <ButtonNeon
-                    className="w-full flex flex-col items-start text-left"
-                    onClick={() => handleItem(id)}
-                  >
-                    <div>
-                      {item?.name ?? id}
-                      {qty > 1 && ` x${qty}`}
-                    </div>
-                    {item && <ItemStats id={id} />}
+          <div>
+            <ul className="grid grid-cols-2 gap-2">
+              {Object.entries(inventory).map(([id, qty]) => {
+                const item = getItem(id);
+                return (
+                  <li key={id}>
+                    <ButtonNeon
+                      className="w-full flex flex-col items-start text-left"
+                      onClick={() => setSelected(id)}
+                    >
+                      <div>
+                        {item ? typeIcons[item.type] : ''} {item?.name ?? id}
+                        {qty > 1 && ` x${qty}`}
+                      </div>
+                      {item && <ItemStats id={id} />}
+                    </ButtonNeon>
+                  </li>
+                );
+              })}
+            </ul>
+            {selectedItem && (
+              <div className="mt-4 p-2 border border-neon-cyan flex flex-col gap-1">
+                <div className="font-bold">
+                  {typeIcons[selectedItem.type]} {selectedItem.name}
+                </div>
+                <div className="text-sm">{selectedItem.description}</div>
+                <div className="text-sm text-neon-cyan">
+                  Value: {selectedItem.value} credits
+                </div>
+                {selectedItem.rarity && (
+                  <div className="text-sm text-neon-cyan">
+                    Rarity: {selectedItem.rarity}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-2">
+                  <ButtonNeon onClick={handleUse} disabled={!selectedItem}>
+                    {selectedItem.type === 'consumable' ? 'Use' : 'Equip'}
                   </ButtonNeon>
-                </li>
-              );
-            })}
-          </ul>
+                  <ButtonNeon
+                    onClick={handleSell}
+                    disabled={Object.values(equipped).includes(selectedItem.id)}
+                  >
+                    Sell
+                  </ButtonNeon>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </Card>

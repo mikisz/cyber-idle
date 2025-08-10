@@ -1,10 +1,12 @@
+import type { Stats, Effect } from '../types/stats';
+
 export type Item = {
   id: string;
   name: string;
   type: 'consumable' | 'weapon' | 'armor' | 'accessory' | 'misc';
   description?: string;
-  stats?: { attack?: number; defense?: number; hackingSpeed?: number };
-  effect?: { heal?: number };
+  stats?: Stats;
+  effect?: Effect;
   buyPriceCredits?: number;
   buyPriceData?: number;
   source?: 'shop-only' | 'loot-only' | 'both';
@@ -18,7 +20,7 @@ export const items: Item[] = [
     name: 'Basic Sword',
     description: 'A simple blade that boosts attack.',
     type: 'weapon',
-    stats: { attack: 5 },
+    stats: { atk: 5 },
     buyPriceCredits: 50,
     source: 'both',
     iconText: '🗡️',
@@ -28,7 +30,7 @@ export const items: Item[] = [
     name: 'Leather Armor',
     description: 'Light armor offering minimal protection.',
     type: 'armor',
-    stats: { defense: 3 },
+    stats: { def: 3 },
     buyPriceCredits: 40,
     source: 'both',
     iconText: '🛡️',
@@ -65,7 +67,7 @@ export const items: Item[] = [
     name: 'Rare Blade',
     description: 'An exceptionally crafted weapon.',
     type: 'weapon',
-    stats: { attack: 15 },
+    stats: { atk: 15 },
     buyPriceCredits: 200,
     source: 'loot-only',
   },
@@ -83,7 +85,7 @@ export const items: Item[] = [
     name: 'Shock Baton',
     type: 'weapon',
     source: 'loot-only',
-    stats: { attack: 3 },
+    stats: { atk: 3 },
     rarity: 'uncommon',
     iconText: '🗡',
   },

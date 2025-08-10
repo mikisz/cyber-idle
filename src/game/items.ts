@@ -3,8 +3,12 @@ import { getItem, type Item } from '../data/items';
 
 function applyItem(player: GameState['player'], item: Item, op: 1 | -1) {
   const newPlayer = { ...player };
-  if (item.stats?.attack) newPlayer.atk += op * item.stats.attack;
-  if (item.stats?.defense) newPlayer.def += op * item.stats.defense;
+  if (item.stats?.atk) newPlayer.atk += op * item.stats.atk;
+  if (item.stats?.def) newPlayer.def += op * item.stats.def;
+  if (item.stats?.hpMax) {
+    newPlayer.hpMax += op * item.stats.hpMax;
+    newPlayer.hp = Math.min(newPlayer.hp, newPlayer.hpMax);
+  }
   return newPlayer;
 }
 
@@ -20,11 +24,11 @@ export function calculateBonuses(
     if (!id) continue;
     const item = getItem(id);
     if (!item?.stats) continue;
-    if (item.stats.attack) damage += item.stats.attack;
-    if (item.stats.defense) defense += item.stats.defense;
+    if (item.stats.atk) damage += item.stats.atk;
+    if (item.stats.def) defense += item.stats.def;
     if (item.stats.hackingSpeed) hackingSpeed *= item.stats.hackingSpeed;
-    // @ts-expect-error optional exploration stat
-    if (item.stats.exploration) exploration += item.stats.exploration;
+    if (item.stats.explorationChance)
+      exploration += item.stats.explorationChance;
   }
   return { damage, defense, hackingSpeed, exploration };
 }

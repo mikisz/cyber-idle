@@ -11,8 +11,13 @@ function ItemStats({ id }: { id: string }) {
   const item = getItem(id);
   if (!item) return null;
   const stats = [] as string[];
-  if (item.stats?.attack) stats.push(`ATK +${item.stats.attack}`);
-  if (item.stats?.defense) stats.push(`DEF +${item.stats.defense}`);
+  if (item.stats?.atk) stats.push(`ATK +${item.stats.atk}`);
+  if (item.stats?.def) stats.push(`DEF +${item.stats.def}`);
+  if (item.stats?.hpMax) stats.push(`HP +${item.stats.hpMax}`);
+  if (item.stats?.hackingSpeed)
+    stats.push(`Hack x${item.stats.hackingSpeed.toFixed(2)}`);
+  if (item.stats?.explorationChance)
+    stats.push(`Explore +${item.stats.explorationChance}%`);
   if (item.effect?.heal) stats.push(`Heal ${item.effect.heal}`);
   return <div className="text-sm text-neon-cyan">{stats.join(', ')}</div>;
 }

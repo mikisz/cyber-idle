@@ -1,34 +1,36 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore, initialState } from './state/store';
-import { buyConsumable, buyUpgrade } from './shop';
+import { buyItem, buyUpgrade } from './shop';
+import { sellItem } from './items';
 
 describe('shop actions', () => {
   beforeEach(() => {
     useGameStore.setState(initialState);
   });
 
-  it('buying consumable costs credits and adds to inventory', () => {
+  it('buying item costs credits and adds to inventory', () => {
     useGameStore.setState((s) => ({
       ...s,
       resources: { ...s.resources, credits: 100 },
     }));
-    const success = buyConsumable('medkit_s');
+    const success = buyItem('medkit_s');
     expect(success).toBe(true);
     const state = useGameStore.getState();
     expect(state.resources.credits).toBe(50);
     expect(state.inventory.medkit_s).toBe(1);
   });
 
-  it('buying data-priced consumable costs data and adds to inventory', () => {
+  it('selling item grants credits and removes it from inventory', () => {
     useGameStore.setState((s) => ({
       ...s,
-      resources: { ...s.resources, data: 30 },
+      inventory: { medkit_s: 1 },
+      resources: { ...s.resources, credits: 0 },
     }));
-    const success = buyConsumable('medkit_m');
+    const success = sellItem('medkit_s');
     expect(success).toBe(true);
     const state = useGameStore.getState();
-    expect(state.resources.data).toBe(5);
-    expect(state.inventory.medkit_m).toBe(1);
+    expect(state.resources.credits).toBe(50);
+    expect(state.inventory.medkit_s).toBeUndefined();
   });
 
   it('buying upgrade marks owned and updates stats', () => {

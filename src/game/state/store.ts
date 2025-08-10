@@ -23,6 +23,11 @@ export interface GameState {
     isRunning: boolean;
     lastStartAt?: number;
   };
+  districtRuntime: {
+    runningActionId: string | null;
+    startedAt?: number;
+    isRunning: boolean;
+  };
   upgrades: { owned: Record<string, boolean> };
   inventory: Record<string, number>; // itemId -> quantity
   equipped: {
@@ -76,6 +81,7 @@ export const initialState: GameState = {
   },
   hacking: { timeMultiplier: 1 },
   hackingState: { currentActionId: null, isRunning: false },
+  districtRuntime: { runningActionId: null, isRunning: false },
   upgrades: { owned: {} },
   inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },

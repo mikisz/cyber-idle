@@ -1,4 +1,4 @@
-import { type GameState } from './state/store';
+import { type GameState, getDistrictById } from './state/store';
 import { gainSkillXpState } from './skills';
 import { getHackingAction } from '../data/hacking';
 import { rollCredits, rollLoot, grantLoot } from './loot';
@@ -88,6 +88,62 @@ function applyOfflineCombat(
   return { state, rewards: { credits: 0, data: 0, xp: 0 } };
 }
 
+function applyOfflineDistrict(
+  state: GameState,
+  clampedMs: number,
+): { state: GameState; rewards: OfflineRewards } {
+  const runtime = state.districtRuntime;
+  const districtId = state.world.activeDistrictId;
+  if (!runtime.isRunning || !runtime.runningActionId || !districtId) {
+    return { state, rewards: { credits: 0, data: 0, xp: 0 } };
+  }
+  const district = getDistrictById(districtId);
+  const action = district?.actions.find((a) => a.id === runtime.runningActionId);
+  if (!action) {
+    return { state, rewards: { credits: 0, data: 0, xp: 0 } };
+  }
+  const speed =
+    action.kind === 'hacking'
+      ? state.hacking.timeMultiplier * state.bonuses.hackingSpeed
+      : 1;
+  const effective = action.baseDurationMs / speed;
+  const completed = Math.floor(clampedMs / effective);
+  if (completed <= 0) {
+    return { state, rewards: { credits: 0, data: 0, xp: 0 } };
+  }
+
+  let creditsTotal = 0;
+  let dataTotal = 0;
+  let xpTotal = 0;
+  const lootDrops: string[] = [];
+  for (let i = 0; i < completed; i++) {
+    creditsTotal += rollCredits(action.rewards.credits);
+    if (action.rewards.data) dataTotal += rollCredits(action.rewards.data);
+    xpTotal += action.rewards.xp;
+    if (action.loot) lootDrops.push(...rollLoot(action.loot));
+  }
+
+  grantLoot(lootDrops);
+
+  let newState: GameState = {
+    ...state,
+    resources: {
+      ...state.resources,
+      credits: state.resources.credits + creditsTotal,
+      data: state.resources.data + dataTotal,
+    },
+    districtRuntime: { runningActionId: null, isRunning: false },
+  };
+
+  const xpRes = gainSkillXpState(newState, action.rewards.xpSkill, xpTotal);
+  newState = xpRes.state;
+
+  return {
+    state: newState,
+    rewards: { credits: creditsTotal, data: dataTotal, xp: xpTotal },
+  };
+}
+
 export function applyOfflineProgress(
   state: GameState,
   deltaMs: number,
@@ -100,12 +156,21 @@ export function applyOfflineProgress(
     newState = {
       ...newState,
       hackingState: { ...newState.hackingState, isRunning: false },
+      districtRuntime: { ...newState.districtRuntime, isRunning: false },
     };
     return { state: newState, rewards };
   }
 
   if (state.hackingState.isRunning) {
     const res = applyOfflineHacking(newState, clamped);
+    newState = res.state;
+    rewards.credits += res.rewards.credits;
+    rewards.data += res.rewards.data;
+    rewards.xp += res.rewards.xp;
+  }
+
+  if (state.districtRuntime.isRunning && state.world.activeDistrictId) {
+    const res = applyOfflineDistrict(newState, clamped);
     newState = res.state;
     rewards.credits += res.rewards.credits;
     rewards.data += res.rewards.data;
@@ -129,6 +194,7 @@ export function applyOfflineProgress(
   newState = {
     ...newState,
     hackingState: { ...newState.hackingState, isRunning: false },
+    districtRuntime: { ...newState.districtRuntime, isRunning: false },
   };
 
   rewards.credits = Math.max(0, Math.floor(rewards.credits));

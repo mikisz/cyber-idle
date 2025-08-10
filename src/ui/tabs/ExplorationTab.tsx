@@ -64,7 +64,7 @@ export default function ExplorationTab() {
             const enemy = getEnemyById(e);
             return (
               <div key={e} className="text-sm">
-                {enemy?.name} (HP {enemy?.hp} ATK {enemy?.atk} DEF {enemy?.def})
+                {enemy?.name} (HP {enemy?.hp} ATK {enemy?.atk})
               </div>
             );
           })}

@@ -59,7 +59,7 @@ export default function CombatPanel() {
           color="magenta"
           className="mt-1"
         />
-        <div className="text-sm">ATK {enemy?.atk} DEF {enemy?.def}</div>
+        <div className="text-sm">ATK {enemy?.atk}</div>
         <div className="text-sm">{enemy?.description}</div>
       </div>
       <div className="space-y-1 max-h-32 overflow-y-auto border p-2">

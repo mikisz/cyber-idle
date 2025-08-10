@@ -1,7 +1,7 @@
 import { useGameStore } from '../../game/state/store';
 import { locations, getLocation } from '../../data/locations';
 import { getEnemyById } from '../../data/enemies';
-import { getItem } from '../../data/items';
+import { getItem, ITEM_TYPE_ICONS } from '../../data/items';
 import { setLocation, rollExplorationEvent, clearEncounter } from '../../game/exploration';
 import Card from '../components/Card';
 import SectionHeader from '../components/SectionHeader';
@@ -35,11 +35,11 @@ export default function ExplorationTab() {
             <div className="text-sm">
               Loot:{' '}
               {loc.lootTable
-                ?.map((d) =>
-                  d.itemId === 'credits'
-                    ? '💰'
-                    : getItem(d.itemId)?.iconText ?? d.itemId,
-                )
+                ?.map((d) => {
+                  if (d.itemId === 'credits') return '💰';
+                  const item = getItem(d.itemId);
+                  return item ? ITEM_TYPE_ICONS[item.type] : d.itemId;
+                })
                 .join(' ')}
             </div>
             <ButtonNeon onClick={() => setLocation(loc.id)}>Enter</ButtonNeon>

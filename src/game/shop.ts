@@ -2,36 +2,19 @@ import { useGameStore } from './state/store';
 import { getItem } from '../data/items';
 import { getUpgrade } from '../data/upgrades';
 
-export function buyConsumable(itemId: string): boolean {
+export function buyItem(itemId: string): boolean {
   const item = getItem(itemId);
-  if (!item || item.type !== 'consumable') return false;
+  if (!item) return false;
   if (item.source === 'loot-only') return false;
-  const priceCredits = item.buyPriceCredits ?? 0;
-  const priceData = item.buyPriceData;
   let success = false;
   useGameStore.setState((state) => {
-    if (priceData !== undefined) {
-      if (state.resources.data < priceData) return state;
-      success = true;
-      return {
-        ...state,
-        resources: {
-          ...state.resources,
-          data: state.resources.data - priceData,
-        },
-        inventory: {
-          ...state.inventory,
-          [itemId]: (state.inventory[itemId] ?? 0) + 1,
-        },
-      };
-    }
-    if (state.resources.credits < priceCredits) return state;
+    if (state.resources.credits < item.value) return state;
     success = true;
     return {
       ...state,
       resources: {
         ...state.resources,
-        credits: state.resources.credits - priceCredits,
+        credits: state.resources.credits - item.value,
       },
       inventory: {
         ...state.inventory,

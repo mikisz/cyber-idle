@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useGameStore } from '../../game/state/store';
-import { equipItem, unequipItem } from '../../game/items';
+import { equipItem, unequipItem, sellItem } from '../../game/items';
 import { consume } from '../../game/shop';
-import { getItem } from '../../data/items';
+import { getItem, ITEM_TYPE_ICONS } from '../../data/items';
 import { showToast } from '../Toast';
 import ButtonNeon from '../components/ButtonNeon';
 import Card from '../components/Card';
@@ -25,17 +26,32 @@ function ItemStats({ id }: { id: string }) {
 export default function InventoryTab() {
   const inventory = useGameStore((s) => s.inventory);
   const equipped = useGameStore((s) => s.equipped);
+  const [selected, setSelected] = useState<string | null>(null);
+  const selectedItem = selected ? getItem(selected) : null;
+  const selectedQty = selected ? inventory[selected] ?? 0 : 0;
+  const isEquipped = selected
+    ? (Object.values(equipped) as (string | null)[]).includes(selected)
+    : false;
 
-  const handleItem = (id: string) => {
-    const item = getItem(id);
-    if (!item) return;
-    if (item.type === 'consumable') {
-      const used = consume(id);
-      if (used && item.effect?.heal) {
-        showToast(`+${item.effect.heal} HP (${item.name})`);
+  const handleUseEquip = () => {
+    if (!selectedItem) return;
+    if (selectedItem.type === 'consumable') {
+      const used = consume(selectedItem.id);
+      if (used && selectedItem.effect?.heal) {
+        showToast(`+${selectedItem.effect.heal} HP (${selectedItem.name})`);
       }
     } else {
-      equipItem(id);
+      equipItem(selectedItem.id);
+    }
+    setSelected(null);
+  };
+
+  const handleSell = () => {
+    if (!selectedItem) return;
+    const sold = sellItem(selectedItem.id);
+    if (sold) {
+      showToast(`Sold ${selectedItem.name} for ${selectedItem.value} credits.`);
+      setSelected(null);
     }
   };
 
@@ -77,10 +93,10 @@ export default function InventoryTab() {
                 <li key={id}>
                   <ButtonNeon
                     className="w-full flex flex-col items-start text-left"
-                    onClick={() => handleItem(id)}
+                    onClick={() => setSelected(id)}
                   >
                     <div>
-                      {item?.name ?? id}
+                      {ITEM_TYPE_ICONS[item?.type ?? 'misc']} {item?.name ?? id}
                       {qty > 1 && ` x${qty}`}
                     </div>
                     {item && <ItemStats id={id} />}
@@ -89,6 +105,37 @@ export default function InventoryTab() {
               );
             })}
           </ul>
+        )}
+        {selectedItem && (
+          <div className="mt-4 space-y-1 border-t pt-2">
+            <div className="font-bold">
+              {ITEM_TYPE_ICONS[selectedItem.type]} {selectedItem.name}
+              {selectedQty > 1 && ` x${selectedQty}`}
+            </div>
+            <div className="text-sm text-neon-cyan">{selectedItem.description}</div>
+            <div className="text-sm text-neon-cyan">Type: {selectedItem.type}</div>
+            <div className="text-sm text-neon-cyan">
+              Value: {selectedItem.value} credits
+            </div>
+            {selectedItem.rarity && (
+              <div className="text-sm text-neon-cyan">
+                Rarity: {selectedItem.rarity}
+              </div>
+            )}
+            <ItemStats id={selectedItem.id} />
+            <div className="mt-2 flex gap-2">
+              <ButtonNeon onClick={handleUseEquip}>
+                {selectedItem.type === 'consumable' ? 'Use' : 'Equip'}
+              </ButtonNeon>
+              <ButtonNeon
+                variant="danger"
+                disabled={isEquipped}
+                onClick={handleSell}
+              >
+                Sell
+              </ButtonNeon>
+            </div>
+          </div>
         )}
       </div>
     </Card>

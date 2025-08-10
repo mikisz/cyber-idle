@@ -11,7 +11,7 @@ describe('AppShell', () => {
     expect(screen.getByText('Exploration L1')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Combat' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Exploration' }));
-    expect(screen.getByText('Slums')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Map' }));
+    expect(screen.getAllByText('Neon Market')[0]).toBeInTheDocument();
   });
 });

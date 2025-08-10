@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import HackingTab from './tabs/HackingTab';
-import ExplorationTab from './tabs/ExplorationTab';
+import MapTab from './tabs/MapTab';
 import InventoryTab from './tabs/InventoryTab';
 import StoreTab from './tabs/StoreTab';
 import UpgradesTab from './tabs/UpgradesTab';
@@ -16,12 +16,12 @@ export type Tab =
   | 'store'
   | 'upgrades'
   | 'stats'
-  | 'exploration';
+  | 'map';
 
 const tabs: { key: Tab; label: string; icon: string }[] = [
   { key: 'stats', label: 'Stats', icon: '📊' },
   { key: 'hacking', label: 'Hacking', icon: '💻' },
-  { key: 'exploration', label: 'Exploration', icon: '🧭' },
+  { key: 'map', label: 'Map', icon: '🗺️' },
   { key: 'inventory', label: 'Inventory', icon: '🎒' },
   { key: 'store', label: 'Store', icon: '🏪' },
   { key: 'upgrades', label: 'Upgrades', icon: '🛠' },
@@ -37,8 +37,8 @@ export default function AppShell() {
     switch (current) {
       case 'stats':
         return <StatsTab />;
-      case 'exploration':
-        return <ExplorationTab />;
+      case 'map':
+        return <MapTab />;
       case 'inventory':
         return <InventoryTab />;
       case 'store':
@@ -78,7 +78,7 @@ export default function AppShell() {
                 : 'text-neon-cyan'
             }`}
             onClick={() => {
-              if (tab.key === 'exploration') {
+              if (tab.key === 'map') {
                 const s = useGameStore.getState();
                 if (s.hackingState.isRunning) {
                   stopHacking();

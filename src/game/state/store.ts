@@ -94,7 +94,7 @@ export const initialState: GameState = {
     recentLog: [],
   },
   meta: { lastSaveTimestamp: null },
-  world: { activeDistrictId: districts[0]?.id ?? null },
+  world: { activeDistrictId: null },
 };
 
 export const useGameStore = create<GameState>(() => initialState);

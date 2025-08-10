@@ -1,90 +1,59 @@
-import { useState } from 'react';
-import { districts, type DistrictStatus } from '../../data/world';
-import { getEnemyById } from '../../data/enemies';
+import { districts } from '../../data/world';
 import { useGameStore, setActiveDistrict } from '../../game/state/store';
 import { showToast } from '../Toast';
 import LocationView from '../location/LocationView';
 
+const districtPositions: Record<string, { x: number; y: number }> = {
+  neon_market: { x: 30, y: 60 },
+  back_alley: { x: 55, y: 45 },
+  skyline_plaza: { x: 75, y: 30 },
+};
+
 export default function MapTab() {
   const playerLevel = useGameStore((s) => s.playerLevel);
   const activeDistrictId = useGameStore((s) => s.world.activeDistrictId);
-  const [view, setView] = useState<'map' | 'location'>('map');
 
-  if (view === 'location' && activeDistrictId) {
-    return <LocationView onBack={() => setView('map')} />;
+  if (activeDistrictId) {
+    return <LocationView />;
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3">
+    <div
+      className="relative h-full w-full bg-center bg-cover"
+      style={{ backgroundImage: 'url(/world-map.svg)' }}
+    >
       {districts.map((d) => {
-        const status: DistrictStatus =
-          activeDistrictId === d.id
-            ? 'active'
-            : playerLevel >= d.unlockLevel
-              ? 'available'
-              : 'locked';
-
+        const pos = districtPositions[d.id];
+        if (!pos) return null;
+        const status =
+          playerLevel >= d.unlockLevel ? 'available' : 'locked';
         const handleClick = () => {
           if (status === 'locked') {
             showToast(`Requires Level ${d.unlockLevel}`);
           } else {
             setActiveDistrict(d.id);
-            setView('location');
           }
         };
-
         return (
           <div
             key={d.id}
-            onClick={handleClick}
-            className={`group relative cursor-pointer border p-4 transition ${
-              status === 'locked'
-                ? 'opacity-50'
-                : 'hover:shadow-[0_0_8px_#ff00ff]'
-            } ${
-              status === 'active'
-                ? 'border-neon-magenta animate-pulse'
-                : status === 'available'
-                  ? 'border-neon-cyan'
-                  : 'border-gray-700'
-            }`}
+            className="group absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
           >
-            {status === 'locked' && (
-              <span className="absolute right-2 top-2">🔒</span>
-            )}
-            <div className="font-bold">{d.name}</div>
-            <div className="text-sm">{d.description}</div>
-            {status === 'locked' && (
-              <div className="mt-2 text-xs">Requires L{d.unlockLevel}</div>
-            )}
-            {d.enemies && (
-              <div className="mt-1 text-xs">
-                Enemies:{' '}
-                {d.enemies
-                  .map((e) => getEnemyById(e)?.name ?? e)
-                  .join(', ')}
-              </div>
-            )}
-            {d.actions.some((a) => a.iconText) && (
-              <div className="mt-1 text-lg">
-                {d.actions
-                  .map((a) => a.iconText)
-                  .filter(Boolean)
-                  .join(' ')}
-              </div>
-            )}
-            <div className="pointer-events-none absolute left-1/2 top-full z-10 hidden w-48 -translate-x-1/2 rounded border border-neon-magenta bg-surface p-2 text-xs group-hover:block">
+            <button
+              onClick={handleClick}
+              className={`h-6 w-6 rounded-full border-2 ${
+                status === 'locked'
+                  ? 'border-gray-700 bg-gray-800'
+                  : 'border-neon-cyan bg-gray-900 hover:shadow-[0_0_8px_#0ff]'
+              }`}
+            >
+              {status === 'locked' && <span className="text-xs">🔒</span>}
+            </button>
+            <div className="pointer-events-none absolute left-1/2 top-full z-10 hidden w-40 -translate-x-1/2 rounded border border-neon-magenta bg-surface p-2 text-xs group-hover:block">
               <div className="font-bold">{d.name}</div>
               <p className="mb-1">{d.description}</p>
               <div>Requires L{d.unlockLevel}</div>
-              {d.actions.some((a) => a.iconText) && (
-                <div className="mt-1">
-                  {d.actions
-                    .map((a) => a.iconText)
-                    .filter(Boolean)
-                    .join(' ')}
-                </div>
-              )}
             </div>
           </div>
         );

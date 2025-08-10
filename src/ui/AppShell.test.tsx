@@ -9,7 +9,7 @@ describe('AppShell', () => {
     expect(screen.getByText('Hacking L1')).toBeInTheDocument();
     expect(screen.getByText('Combat L1')).toBeInTheDocument();
     expect(screen.getByText('Exploration L1')).toBeInTheDocument();
-    expect(screen.getByTestId('tab-content')).toHaveTextContent('Start hack');
+    expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Combat' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Exploration' }));
     expect(screen.getByText('Slums')).toBeInTheDocument();

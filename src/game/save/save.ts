@@ -41,6 +41,7 @@ export async function loadGame(): Promise<GameState | null> {
         player: { ...initialState.player, ...s.player },
         skills: { ...initialState.skills, ...s.skills },
         hacking: { ...initialState.hacking, ...s.hacking },
+        hackingState: { ...initialState.hackingState, ...s.hackingState },
         upgrades: { ...initialState.upgrades, ...s.upgrades },
         inventory: { ...initialState.inventory, ...s.inventory },
         equipped: { ...initialState.equipped, ...s.equipped },

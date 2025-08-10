@@ -7,7 +7,8 @@ import UpgradesTab from './tabs/UpgradesTab';
 import StatsTab from './tabs/StatsTab';
 import SettingsMenu from './SettingsMenu';
 import { useGameStore } from '../game/state/store';
-import { NeonToast } from './Toast';
+import { NeonToast, showToast } from './Toast';
+import { stopHacking } from '../game/hacking';
 
 export type Tab =
   | 'hacking'
@@ -76,7 +77,16 @@ export default function AppShell() {
                 ? 'text-neon-magenta drop-shadow-[0_0_6px_#ff00ff]'
                 : 'text-neon-cyan'
             }`}
-            onClick={() => setCurrent(tab.key)}
+            onClick={() => {
+              if (tab.key === 'exploration') {
+                const s = useGameStore.getState();
+                if (s.hackingState.isRunning) {
+                  stopHacking();
+                  showToast('Hacking paused');
+                }
+              }
+              setCurrent(tab.key);
+            }}
           >
             <span>{tab.icon}</span>
             {current === tab.key && <span>{tab.label}</span>}

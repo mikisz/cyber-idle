@@ -50,7 +50,7 @@ export function equipItem(itemId: string) {
   useGameStore.setState((state) => {
     const count = state.inventory[itemId] ?? 0;
     if (count <= 0) return state;
-    const slot = item.type as 'weapon' | 'armor' | 'accessory';
+    const slot = item.type as 'weapon' | 'armor' | 'upgrade';
     const newInventory = { ...state.inventory, [itemId]: count - 1 };
     if (newInventory[itemId] <= 0) delete newInventory[itemId];
     const newEquipped = { ...state.equipped };
@@ -75,7 +75,7 @@ export function equipItem(itemId: string) {
   });
 }
 
-export function unequipItem(slot: 'weapon' | 'armor' | 'accessory') {
+export function unequipItem(slot: 'weapon' | 'armor' | 'upgrade') {
   useGameStore.setState((state) => {
     const itemId = state.equipped[slot];
     if (!itemId) return state;

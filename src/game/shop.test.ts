@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore, initialState } from './state/store';
-import { buyConsumable, buyUpgrade } from './shop';
+import { buyItem, buyUpgrade, sellItem } from './shop';
 
 describe('shop actions', () => {
   beforeEach(() => {
@@ -12,7 +12,7 @@ describe('shop actions', () => {
       ...s,
       resources: { ...s.resources, credits: 100 },
     }));
-    const success = buyConsumable('medkit_s');
+    const success = buyItem('medkit_s');
     expect(success).toBe(true);
     const state = useGameStore.getState();
     expect(state.resources.credits).toBe(50);
@@ -24,7 +24,7 @@ describe('shop actions', () => {
       ...s,
       resources: { ...s.resources, data: 30 },
     }));
-    const success = buyConsumable('medkit_m');
+    const success = buyItem('medkit_m');
     expect(success).toBe(true);
     const state = useGameStore.getState();
     expect(state.resources.data).toBe(5);
@@ -55,5 +55,17 @@ describe('shop actions', () => {
     expect(state.resources.credits).toBe(80);
     expect(state.resources.data).toBe(10);
     expect(state.upgrades.owned.neuro_patch_1).toBe(true);
+  });
+
+  it('selling item removes it and grants credits', () => {
+    useGameStore.setState((s) => ({
+      ...s,
+      inventory: { medkit_s: 1 },
+    }));
+    const success = sellItem('medkit_s');
+    expect(success).toBe(true);
+    const state = useGameStore.getState();
+    expect(state.inventory.medkit_s).toBeUndefined();
+    expect(state.resources.credits).toBe(25);
   });
 });

@@ -22,7 +22,7 @@ export interface GameState {
   equipped: {
     weapon: string | null;
     armor: string | null;
-    accessory: string | null;
+    upgrade: string | null;
   };
   bonuses: {
     damage: number;
@@ -70,7 +70,7 @@ export const initialState: GameState = {
   hacking: { timeMultiplier: 1, inProgress: false },
   upgrades: { owned: {} },
   inventory: {},
-  equipped: { weapon: null, armor: null, accessory: null },
+  equipped: { weapon: null, armor: null, upgrade: null },
   bonuses: { damage: 0, defense: 0, hackingSpeed: 1, exploration: 0 },
   combat: { enemyId: null, enemyHp: 0, inFight: false, log: [] },
   exploration: {

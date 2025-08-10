@@ -1,46 +1,105 @@
-import { GameState } from './state/store';
+import { useGameStore, type GameState } from './state/store';
+import { getHackingAction, type HackingAction } from '../data/hacking';
 import { gainSkillXpState } from './skills';
-import { grantLoot, rollLoot, type LootEntry } from './loot';
+import { rollCredits, rollLoot, grantLoot } from './loot';
+import { showToast } from '../ui/Toast';
 
-export const BASE_HACK_DURATION = 10000; // ms
+let hackingTimer: ReturnType<typeof setTimeout> | null = null;
 
-export interface HackRewards {
-  credits: number;
-  data: number;
-  xp: number;
+function getSpeedMultiplier(state: GameState): number {
+  return state.hacking.timeMultiplier * state.bonuses.hackingSpeed;
 }
 
-const HACK_LOOT_TABLE: LootEntry[] = [
-  { itemId: 'neural_chip', chance: 0.01 },
-  { itemId: 'shock_baton', chance: 0.03 },
-];
+function getEffectiveDuration(action: HackingAction, state: GameState): number {
+  return action.baseDurationMs / getSpeedMultiplier(state);
+}
 
-export function performHack(state: GameState): {
-  state: GameState;
-  rewards: HackRewards;
-  loot?: string | null;
-  playerLeveled?: boolean;
-} {
-  const credits = 50 + Math.floor(Math.random() * 101);
-  const xpGain = 5 + Math.floor(Math.random() * 11);
-  const dataGain = 1 + Math.floor(Math.random() * 5);
+function rollActionRewards(action: HackingAction) {
+  const credits = rollCredits(action.rewards.credits);
+  const data = action.rewards.data ? rollCredits(action.rewards.data) : 0;
+  const xp = action.rewards.xp;
+  return { credits, data, xp };
+}
+
+function completeCycle(action: HackingAction) {
+  const state = useGameStore.getState();
+  const rewards = rollActionRewards(action);
+  const lootDrops = action.loot ? rollLoot(action.loot) : [];
+  grantLoot(lootDrops);
+
   let newState: GameState = {
     ...state,
     resources: {
       ...state.resources,
-      credits: state.resources.credits + credits,
-      data: state.resources.data + dataGain,
+      credits: state.resources.credits + rewards.credits,
+      data: state.resources.data + rewards.data,
     },
   };
-  const xpResult = gainSkillXpState(newState, 'hacking', xpGain);
-  newState = xpResult.state;
-  const drops = rollLoot(HACK_LOOT_TABLE);
-  grantLoot(drops);
+  const xpRes = gainSkillXpState(newState, 'hacking', rewards.xp);
+  newState = xpRes.state;
 
-  return {
-    state: newState,
-    rewards: { credits, data: dataGain, xp: xpGain },
-    loot: drops[0] ?? null,
-    playerLeveled: xpResult.playerLeveled,
-  };
+  useGameStore.setState({
+    ...newState,
+    hackingState: {
+      ...newState.hackingState,
+      lastStartAt: Date.now(),
+    },
+  });
+
+  const parts: string[] = [];
+  if (rewards.credits) parts.push(`+${rewards.credits} Credits`);
+  if (rewards.data) parts.push(`+${rewards.data} Data`);
+  if (rewards.xp) parts.push(`+${rewards.xp} XP`);
+  if (parts.length) showToast(parts.join(', '));
+
+  if (useGameStore.getState().hackingState.isRunning) {
+    scheduleNext(action);
+  }
+}
+
+function scheduleNext(action: HackingAction) {
+  const state = useGameStore.getState();
+  const duration = getEffectiveDuration(action, state);
+  hackingTimer = setTimeout(() => completeCycle(action), duration);
+}
+
+export function startHacking(actionId: string) {
+  const action = getHackingAction(actionId);
+  if (!action) return;
+  const state = useGameStore.getState();
+  if (state.skills.hacking.level < action.minLevel) {
+    showToast(`Requires Hacking L${action.minLevel}`);
+    return;
+  }
+  if (hackingTimer) {
+    clearTimeout(hackingTimer);
+    hackingTimer = null;
+  }
+  useGameStore.setState((s) => ({
+    ...s,
+    hackingState: {
+      currentActionId: actionId,
+      isRunning: true,
+      lastStartAt: Date.now(),
+    },
+  }));
+  scheduleNext(action);
+}
+
+export function stopHacking() {
+  if (hackingTimer) {
+    clearTimeout(hackingTimer);
+    hackingTimer = null;
+  }
+  useGameStore.setState((s) => ({
+    ...s,
+    hackingState: { ...s.hackingState, isRunning: false },
+  }));
+}
+
+export function getEffectiveDurationMs(actionId: string): number {
+  const action = getHackingAction(actionId);
+  if (!action) return 0;
+  const state = useGameStore.getState();
+  return getEffectiveDuration(action, state);
 }

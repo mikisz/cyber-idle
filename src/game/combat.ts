@@ -5,6 +5,7 @@ import { getLocation } from '../data/locations';
 import { grantLoot, rollCredits, rollLoot, type LootEntry } from './loot';
 import { gainSkillXpState } from './skills';
 import { showToast } from '../ui/Toast';
+import { stopHacking } from './hacking';
 
 export function calcDamage(atk: number, def: number): number {
   const variance = Math.floor(Math.random() * 3) - 1; // -1,0,1
@@ -18,6 +19,11 @@ function trimLog(log: string[]): string[] {
 export function startCombat(enemyId: string) {
   const enemy = getEnemyById(enemyId);
   if (!enemy) return;
+  const s = useGameStore.getState();
+  if (s.hackingState.isRunning) {
+    stopHacking();
+    showToast('Hacking paused');
+  }
   useGameStore.setState((s) => ({
     ...s,
     combat: {

@@ -16,7 +16,12 @@ export interface GameState {
     combat: { level: number; xp: number };
     exploration: { level: number; xp: number };
   };
-  hacking: { timeMultiplier: number; inProgress: boolean };
+  hacking: { timeMultiplier: number };
+  hackingState: {
+    currentActionId: string | null;
+    isRunning: boolean;
+    lastStartAt?: number;
+  };
   upgrades: { owned: Record<string, boolean> };
   inventory: Record<string, number>; // itemId -> quantity
   equipped: {
@@ -67,7 +72,8 @@ export const initialState: GameState = {
     combat: { level: 1, xp: 0 },
     exploration: { level: 1, xp: 0 },
   },
-  hacking: { timeMultiplier: 1, inProgress: false },
+  hacking: { timeMultiplier: 1 },
+  hackingState: { currentActionId: null, isRunning: false },
   upgrades: { owned: {} },
   inventory: {},
   equipped: { weapon: null, armor: null, accessory: null },

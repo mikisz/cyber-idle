@@ -23,18 +23,18 @@ describe('Upgrades', () => {
     expect(useGameStore.getState().resources.data).toBe(5);
 
     render(<HackingTab />);
-    fireEvent.click(screen.getByRole('button', { name: /start hack/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
 
     act(() => {
-      vi.advanceTimersByTime(9500);
+      vi.advanceTimersByTime(5600); // before upgraded duration completes
     });
     expect(useGameStore.getState().resources.credits).toBe(80);
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(200); // total 5800ms > 5714ms effective
     });
     const finalState = useGameStore.getState();
-    expect(finalState.resources.credits).toBe(130);
+    expect(finalState.resources.credits).toBe(100);
     expect(finalState.resources.data).toBe(6);
 
     rand.mockRestore();

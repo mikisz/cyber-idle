@@ -6,6 +6,7 @@ import { grantLoot, rollCredits, rollLoot, type LootEntry } from './loot';
 import { gainSkillXpState } from './skills';
 import { showToast } from '../ui/Toast';
 import { stopHacking } from './hacking';
+import { stopDistrictAction } from './district';
 
 export function calcDamage(atk: number, def: number): number {
   const variance = Math.floor(Math.random() * 3) - 1; // -1,0,1
@@ -23,6 +24,10 @@ export function startCombat(enemyId: string) {
   if (s.hackingState.isRunning) {
     stopHacking();
     showToast('Hacking paused');
+  }
+  if (s.districtRuntime.isRunning) {
+    stopDistrictAction();
+    showToast('District action paused');
   }
   useGameStore.setState((s) => ({
     ...s,

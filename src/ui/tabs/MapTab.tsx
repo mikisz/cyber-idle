@@ -3,7 +3,7 @@ import { districts, type DistrictStatus } from '../../data/world';
 import { getEnemyById } from '../../data/enemies';
 import { useGameStore, setActiveDistrict } from '../../game/state/store';
 import { showToast } from '../Toast';
-import LocationView from './LocationView';
+import LocationView from '../location/LocationView';
 
 export default function MapTab() {
   const playerLevel = useGameStore((s) => s.playerLevel);

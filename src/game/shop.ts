@@ -6,14 +6,33 @@ export function buyConsumable(itemId: string): boolean {
   const item = getItem(itemId);
   if (!item || item.type !== 'consumable') return false;
   if (item.source === 'loot-only') return false;
-  const price = item.buyPriceCredits ?? 0;
+  const priceCredits = item.buyPriceCredits ?? 0;
+  const priceData = item.buyPriceData;
   let success = false;
   useGameStore.setState((state) => {
-    if (state.resources.credits < price) return state;
+    if (priceData !== undefined) {
+      if (state.resources.data < priceData) return state;
+      success = true;
+      return {
+        ...state,
+        resources: {
+          ...state.resources,
+          data: state.resources.data - priceData,
+        },
+        inventory: {
+          ...state.inventory,
+          [itemId]: (state.inventory[itemId] ?? 0) + 1,
+        },
+      };
+    }
+    if (state.resources.credits < priceCredits) return state;
     success = true;
     return {
       ...state,
-      resources: { ...state.resources, credits: state.resources.credits - price },
+      resources: {
+        ...state.resources,
+        credits: state.resources.credits - priceCredits,
+      },
       inventory: {
         ...state.inventory,
         [itemId]: (state.inventory[itemId] ?? 0) + 1,
@@ -30,12 +49,16 @@ export function buyUpgrade(upgradeId: string): boolean {
   useGameStore.setState((state) => {
     if (state.upgrades.owned[upgradeId]) return state;
     if (state.resources.credits < upgrade.costCredits) return state;
+    if (upgrade.costData && state.resources.data < upgrade.costData) return state;
     success = true;
     const owned = { ...state.upgrades.owned, [upgradeId]: true };
     const player = { ...state.player };
     const resources = {
       ...state.resources,
       credits: state.resources.credits - upgrade.costCredits,
+      data: upgrade.costData
+        ? state.resources.data - upgrade.costData
+        : state.resources.data,
     };
     if (upgrade.effects.atk) player.atk += upgrade.effects.atk;
     if (upgrade.effects.hpMax) {

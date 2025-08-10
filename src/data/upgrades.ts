@@ -2,6 +2,7 @@ export interface Upgrade {
   id: string;
   name: string;
   costCredits: number;
+  costData?: number;
   effects: { hackingSpeed?: number; atk?: number; hpMax?: number };
   description?: string;
   iconText?: string;
@@ -12,6 +13,7 @@ export const upgrades: Upgrade[] = [
     id: 'neuro_patch_1',
     name: 'Neuro Patch I',
     costCredits: 120,
+    costData: 20,
     effects: { hackingSpeed: 1.05 },
     iconText: '🧠',
   },

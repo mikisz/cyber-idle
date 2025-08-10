@@ -15,11 +15,12 @@ describe('Upgrades', () => {
 
     useGameStore.setState((s) => ({
       ...s,
-      resources: { ...s.resources, credits: 200 },
+      resources: { ...s.resources, credits: 200, data: 25 },
     }));
 
     render(<UpgradesTab />);
     fireEvent.click(screen.getByTestId('buy-neuro_patch_1'));
+    expect(useGameStore.getState().resources.data).toBe(5);
 
     render(<HackingTab />);
     fireEvent.click(screen.getByRole('button', { name: /start hack/i }));
@@ -32,7 +33,9 @@ describe('Upgrades', () => {
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    expect(useGameStore.getState().resources.credits).toBe(130);
+    const finalState = useGameStore.getState();
+    expect(finalState.resources.credits).toBe(130);
+    expect(finalState.resources.data).toBe(6);
 
     rand.mockRestore();
     vi.useRealTimers();
@@ -61,5 +64,14 @@ describe('Upgrades', () => {
     const state = useGameStore.getState();
     expect(state.player.hpMax).toBe(65);
     expect(state.player.hp).toBe(65);
+  });
+
+  it('disables purchase when lacking data', () => {
+    useGameStore.setState((s) => ({
+      ...s,
+      resources: { ...s.resources, credits: 200, data: 5 },
+    }));
+    render(<UpgradesTab />);
+    expect(screen.getByTestId('buy-neuro_patch_1')).toBeDisabled();
   });
 });

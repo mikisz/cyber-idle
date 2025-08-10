@@ -11,6 +11,7 @@ export default function StatsTab() {
   const playerXPToNext = useGameStore((s) => s.playerXPToNextLevel);
   const skills = useGameStore((s) => s.skills);
   const bonuses = useGameStore((s) => s.bonuses);
+  const resources = useGameStore((s) => s.resources);
 
   const renderSkill = (
     name: string,
@@ -39,6 +40,11 @@ export default function StatsTab() {
           percentage={(playerXP / playerXPToNext) * 100}
           color="cyan"
         />
+      </div>
+      <div>
+        <SectionHeader>Resources</SectionHeader>
+        <div>Credits: {resources.credits}</div>
+        <div>Data: {resources.data}</div>
       </div>
       <div>
         <SectionHeader>Core Stats</SectionHeader>

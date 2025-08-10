@@ -32,15 +32,21 @@ export default function HackingTab() {
 
         let loot: string | null = null;
         let playerLeveled = false;
+        let dataGained = 0;
         setState((state) => {
-          const { state: updated, loot: drop, playerLeveled: leveled } = performHack(
-            state,
-          );
+          const {
+            state: updated,
+            loot: drop,
+            playerLeveled: leveled,
+            rewards,
+          } = performHack(state);
           loot = drop ?? null;
           playerLeveled = leveled ?? false;
+          dataGained = rewards.data;
           return { ...updated, hacking: { ...updated.hacking, inProgress: false } };
         });
         if (loot) addItemToInventory(loot);
+        if (dataGained) showToast(`+${dataGained} Data`);
         if (playerLeveled) {
           showToast(`Reached Level ${useGameStore.getState().playerLevel}`);
         }

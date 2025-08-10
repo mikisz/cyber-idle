@@ -9,7 +9,9 @@ import SectionHeader from '../components/SectionHeader';
 import Modal from '../components/Modal';
 
 export default function StoreTab() {
-  const credits = useGameStore((s) => s.resources.credits);
+  const resources = useGameStore((s) => s.resources);
+  const credits = resources.credits;
+  const data = resources.data;
   const consumables = items.filter(
     (i) =>
       i.type === 'consumable' &&
@@ -45,11 +47,17 @@ export default function StoreTab() {
                 <div className="text-sm text-neon-cyan">{item.description}</div>
               )}
               <div className="text-sm text-neon-cyan">
-                Credits: {item.buyPriceCredits ?? 0}
+                {item.buyPriceData
+                  ? `Data: ${item.buyPriceData}`
+                  : `Credits: ${item.buyPriceCredits ?? 0}`}
               </div>
             </div>
             <ButtonNeon
-              disabled={credits < (item.buyPriceCredits ?? 0)}
+              disabled={
+                item.buyPriceData
+                  ? data < item.buyPriceData
+                  : credits < (item.buyPriceCredits ?? 0)
+              }
               onClick={() => setPending(item.id)}
             >
               Buy
@@ -73,7 +81,9 @@ export default function StoreTab() {
       >
         {selectedItem && (
           <div>
-            Buy {selectedItem.name} for {selectedItem.buyPriceCredits ?? 0} credits?
+            Buy {selectedItem.name} for{' '}
+            {selectedItem.buyPriceData ?? selectedItem.buyPriceCredits ?? 0}{' '}
+            {selectedItem.buyPriceData ? 'data' : 'credits'}?
           </div>
         )}
       </Modal>

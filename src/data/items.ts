@@ -6,6 +6,7 @@ export type Item = {
   stats?: { attack?: number; defense?: number; hackingSpeed?: number };
   effect?: { heal?: number };
   buyPriceCredits?: number;
+  buyPriceData?: number;
   source?: 'shop-only' | 'loot-only' | 'both';
   rarity?: 'common' | 'uncommon' | 'rare';
   iconText?: string;
@@ -47,7 +48,7 @@ export const items: Item[] = [
     name: 'Medkit (M)',
     type: 'consumable',
     source: 'shop-only',
-    buyPriceCredits: 120,
+    buyPriceData: 25,
     effect: { heal: 120 },
     iconText: '💊',
     description: 'Restores 120 health when used.',

@@ -10,7 +10,9 @@ export default function UpgradesTab() {
   const resources = useGameStore((s) => s.resources);
   const owned = useGameStore((s) => s.upgrades.owned);
 
-  const canAfford = (cost: number) => resources.credits >= cost;
+  const canAfford = (u: typeof upgrades[number]) =>
+    resources.credits >= u.costCredits &&
+    (u.costData ? resources.data >= u.costData : true);
 
   const buy = (id: string, name: string) => {
     const success = buyUpgrade(id);
@@ -35,7 +37,7 @@ export default function UpgradesTab() {
       <ul className="space-y-2">
         {upgrades.map((u) => {
           const isOwned = owned[u.id];
-          const disabled = isOwned || !canAfford(u.costCredits);
+          const disabled = isOwned || !canAfford(u);
           return (
             <li key={u.id} className="flex items-center justify-between">
               <div>
@@ -46,6 +48,9 @@ export default function UpgradesTab() {
                 <div className="text-sm text-neon-cyan">
                   Credits: {u.costCredits}
                 </div>
+                {u.costData !== undefined && (
+                  <div className="text-sm text-neon-cyan">Data: {u.costData}</div>
+                )}
               </div>
               <ButtonNeon
                 data-testid={`buy-${u.id}`}

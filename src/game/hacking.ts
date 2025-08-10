@@ -23,10 +23,14 @@ export function performHack(state: GameState): {
 } {
   const credits = 50 + Math.floor(Math.random() * 101);
   const xpGain = 5 + Math.floor(Math.random() * 11);
-  const dataGain = 0;
+  const dataGain = 1 + Math.floor(Math.random() * 5);
   let newState: GameState = {
     ...state,
-    resources: { ...state.resources, credits: state.resources.credits + credits },
+    resources: {
+      ...state.resources,
+      credits: state.resources.credits + credits,
+      data: state.resources.data + dataGain,
+    },
   };
   const xpResult = gainSkillXpState(newState, 'hacking', xpGain);
   newState = xpResult.state;
